@@ -1,0 +1,442 @@
+/*
+  烘焙店「日日餅乾」。結構照 Figma「烘焙店場景」：
+    .scene--shop  舞台。設成 container，裡面才能用 --su（舞台寬 ÷ 1200）當單位
+    .shop         取景框（Figma 的 Viewport，1200 × 760），加 Perspective 700；data-camera 切換鏡頭
+    .shop__room   房間（Figma 的 Room，preserve-3d）。鏡頭的位置和方向都換算成這一層的 transform
+    .shop__part   房間裡的每一片平面：--l / --t / --w / --h 是 Figma 的 x / y / 寬 / 高，
+                  --tz / --ax / --ay 是 Figma 的 Depth 與 X / Y 旋轉
+    .shop__deco   平面上的裝飾（招牌、海報…），只有位置，沒有 3D
+  所有數字都乘上 --su。HTML 由 scripts/shop.js 產生。
+*/
+
+/*
+  擺放用的變數不往下繼承：展示櫃、小栗也是房間裡的 .shop__part，
+  它們裡面的零件如果沒寫 --l，不能撿到外層櫃子自己的擺放位置。
+*/
+@property --l {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --t {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --w {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --h {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --tz {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --ax {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --ay {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/*
+  鏡頭：眼睛在房間裡的位置（Figma 單位）與左右轉頭的角度。
+  登記成有型別的變數，換鏡頭時才能直接補間這四個數字——房間的 transform、
+  吊燈轉向鏡頭的角度都是從這四個數字算出來的，會一起跟著動。
+*/
+@property --cam-x {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 600;
+}
+@property --cam-y {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 315;
+}
+@property --cam-z {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 550;
+}
+@property --cam-yaw {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+.scene--shop {
+  container-type: inline-size;
+  background: var(--shop-backdrop);
+}
+
+.shop {
+  /*
+    放進來的展示櫃、小栗改用烘焙店的單位。用到這兩個單位的 token 也要在這裡重算，
+    因為 :root 上的值已經用各自展示頁的倍率算好了。
+  */
+  --cu: var(--su);
+  --hu: var(--su);
+  --case-frame-width: calc(var(--cu) * 2);
+  --hh-bob: calc(var(--hu) * -6);
+
+  position: relative;
+  height: calc(var(--su) * 760);
+  overflow: hidden;
+  perspective: calc(var(--su) * 700); /* Figma Viewport 的 Perspective 700 */
+  transition:
+    --cam-x var(--shop-cam-duration) var(--shop-cam-ease),
+    --cam-y var(--shop-cam-duration) var(--shop-cam-ease),
+    --cam-z var(--shop-cam-duration) var(--shop-cam-ease),
+    --cam-yaw var(--shop-cam-duration) var(--shop-cam-ease);
+}
+
+/*
+  鏡頭位置。門口＝Figma 的視角：Room 往鏡頭推 150，等於眼睛站在門外 550 的地方。
+  [需確認] 另外三個是為了看清楚各區、實測調出來的，之後遊戲開始前的導覽會照這個順序走一遍。
+*/
+.shop[data-camera='cases'] {
+  --cam-x: 700;
+  --cam-y: 330;
+  --cam-z: 150;
+  --cam-yaw: -36deg;
+}
+.shop[data-camera='bread'] {
+  --cam-x: 500;
+  --cam-y: 330;
+  --cam-z: 150;
+  --cam-yaw: 40deg;
+}
+.shop[data-camera='counter'] {
+  --cam-x: 640;
+  --cam-y: 380;
+  --cam-z: -350;
+  --cam-yaw: 0deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop {
+    transition: none;
+  }
+}
+
+/*
+  房間。CSS 的眼睛固定在取景框中心正前方 700（perspective），所以「移動鏡頭」其實是反過來移動房間：
+  把房間的轉軸（transform-origin）放在眼睛上，先把「鏡頭要站的點」平移到眼睛的位置，再繞著眼睛轉頭。
+  眼睛在房間座標裡是 (600, 315, 700)：取景框中心 (600, 380) 扣掉房間往下的 65。
+  --rx / --ry 是拖曳的角度（scripts/rotate.js 改的）。轉頭的方向跟拖曳相反，
+  畫面才會跟著手指走（像街景：往左拖，看到右邊的東西）。
+*/
+.shop__room {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+  position: absolute;
+  left: 0;
+  top: calc(var(--su) * 65);
+  width: calc(var(--su) * 1200);
+  height: calc(var(--su) * 700);
+  transform-style: preserve-3d;
+  transform-origin: calc(var(--su) * 600) calc(var(--su) * 315) calc(var(--su) * 700);
+  transform: rotateX(calc(-1 * var(--rx))) rotateY(calc(var(--cam-yaw) - var(--ry)))
+    translate3d(
+      calc(var(--su) * (600 - var(--cam-x))),
+      calc(var(--su) * (315 - var(--cam-y))),
+      calc(var(--su) * (700 - var(--cam-z)))
+    );
+}
+
+.shop__part,
+.shop__deco {
+  position: absolute;
+  left: calc(var(--su) * var(--l));
+  top: calc(var(--su) * var(--t));
+  width: calc(var(--su) * var(--w));
+  height: calc(var(--su) * var(--h));
+  margin: 0;
+}
+
+/* 跟 Figma 的 3D transform 同一個順序：Depth → X 旋轉 → Y 旋轉 */
+.shop__part {
+  translate: none; /* 展示櫃頁替櫃子往上挪的 translate，放進店裡不需要 */
+  transform: translateZ(calc(var(--su) * var(--tz))) rotateX(calc(var(--ax) * 1deg)) rotateY(calc(var(--ay) * 1deg));
+}
+
+.shop__part p,
+.shop__deco p {
+  margin: 0;
+}
+
+/* ---------- 地板、天花板、牆 ---------- */
+
+/* 100 × 100 的磁磚，深淺交錯；左上角那一格是淺的，跟 Figma 一樣 */
+.shop__floor {
+  background: repeating-conic-gradient(var(--shop-floor-tile) 0 25%, var(--shop-floor) 0 50%) 0 0 /
+    calc(var(--su) * 200) calc(var(--su) * 200);
+}
+
+/* 三根 30 寬的樑，中心在 300、600、900 */
+.shop__ceiling {
+  background: linear-gradient(
+    var(--shop-ceiling) calc(var(--su) * 285),
+    var(--shop-beam) 0 calc(var(--su) * 315),
+    var(--shop-ceiling) 0 calc(var(--su) * 585),
+    var(--shop-beam) 0 calc(var(--su) * 615),
+    var(--shop-ceiling) 0 calc(var(--su) * 885),
+    var(--shop-beam) 0 calc(var(--su) * 915),
+    var(--shop-ceiling) 0
+  );
+}
+
+/* 牆的下半截是護牆板，交界處一條 8 高的飾條 */
+.shop__wall {
+  overflow: hidden;
+  background: linear-gradient(
+    var(--wall) calc(var(--su) * 464),
+    var(--shop-trim) 0 calc(var(--su) * 472),
+    var(--shop-wainscot) 0
+  );
+}
+.shop__wall--back {
+  --wall: var(--shop-wall-back);
+}
+.shop__wall--left {
+  --wall: var(--shop-wall-left);
+}
+.shop__wall--right {
+  --wall: var(--shop-wall-right);
+}
+
+/* ---------- 後牆 ---------- */
+
+.shop__sign {
+  border-radius: calc(var(--su) * 12);
+  background: var(--shop-sign);
+  color: var(--shop-sign-ink);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.shop__sign-name,
+.shop__sign-latin {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.shop__sign-name {
+  top: calc(var(--su) * 10);
+  font-size: calc(var(--su) * 40);
+  line-height: 1.45;
+}
+
+/* letter-spacing 會在最後一個字後面多留一格，用 text-indent 補在前面，字才會置中 */
+.shop__sign-latin {
+  top: calc(var(--su) * 70);
+  font-size: calc(var(--su) * 13);
+  line-height: 1.2;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+/* 黑板菜單：外框用 inset 陰影畫，跟 Figma 的 stroke inside 一樣不會把內容往內推 */
+.shop__menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--su) * 14) calc(var(--su) * 24) 0;
+  border-radius: calc(var(--su) * 6);
+  background: var(--shop-board);
+  box-shadow: inset 0 0 0 calc(var(--su) * 8) var(--shop-board-frame);
+  color: var(--shop-chalk);
+}
+
+.shop__menu-title {
+  font-size: calc(var(--su) * 22);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+}
+
+.shop__menu-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--su) * 24);
+  width: 100%;
+  margin-top: calc(var(--su) * 10);
+}
+
+.shop__menu-head {
+  margin-bottom: calc(var(--su) * 4);
+  color: var(--shop-chalk-muted);
+  font-size: calc(var(--su) * 13);
+  line-height: 1.45;
+}
+
+.shop__menu-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: calc(var(--su) * 15);
+  line-height: 1.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.shop__door {
+  background: var(--shop-door);
+}
+
+.shop__noren {
+  background: var(--shop-noren);
+}
+
+.shop__noren-slit {
+  background: var(--shop-door);
+}
+
+.shop__noren-text {
+  position: absolute;
+  top: calc(var(--su) * 4);
+  left: 0;
+  right: 0;
+  color: var(--shop-noren-ink);
+  font-size: calc(var(--su) * 20);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* ---------- 左牆的海報 ---------- */
+
+.shop__poster {
+  border-radius: calc(var(--su) * 6);
+  background: var(--shop-poster);
+  box-shadow: inset 0 0 0 calc(var(--su) * 6) var(--shop-poster-frame);
+}
+
+.shop__poster-art svg,
+.shop__bread svg,
+.shop__lamp-shade svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.shop__poster-text {
+  position: absolute;
+  top: calc(var(--su) * 106);
+  left: 0;
+  right: 0;
+  color: var(--shop-poster-ink);
+  font-size: calc(var(--su) * 18);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* ---------- 右牆的麵包層架 ---------- */
+
+.shop__rack {
+  background: var(--shop-rack);
+  box-shadow: inset 0 0 0 calc(var(--su) * 6) var(--shop-rack-frame);
+}
+
+.shop__rack-title {
+  color: var(--shop-rack-ink);
+  font-size: calc(var(--su) * 26);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.shop__shelf {
+  background: var(--shop-shelf);
+}
+
+.shop__shelf-edge {
+  background: var(--shop-shelf-edge);
+}
+
+/* ---------- 櫃台、收銀機、托盤 ---------- */
+
+.shop__counter-front {
+  background: var(--shop-counter);
+}
+
+.shop__counter-lip {
+  background: var(--shop-counter-lip);
+}
+
+.shop__counter-panel {
+  box-shadow: inset 0 0 0 calc(var(--su) * 3) var(--shop-counter-side);
+}
+
+.shop__counter-top {
+  background: var(--shop-counter-top);
+}
+
+.shop__counter-side {
+  background: var(--shop-counter-side);
+}
+
+.shop__register-front {
+  background: var(--shop-register);
+}
+
+.shop__register-top {
+  background: var(--shop-register-top);
+}
+
+.shop__register-side {
+  background: var(--shop-register-side);
+}
+
+.shop__register-screen {
+  background: var(--shop-screen);
+}
+
+.shop__tray {
+  background: var(--shop-tray);
+}
+
+/* ---------- 吊燈：繞 Y 轉回鏡頭的方向，不管鏡頭怎麼轉都看到正面 ---------- */
+
+.shop__lamp {
+  transform: translateZ(calc(var(--su) * var(--tz))) rotateY(calc(var(--ry) - var(--cam-yaw)));
+}
+
+.shop__lamp-glow {
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--shop-lamp-glow), transparent);
+}
+
+.shop__lamp-cord {
+  background: var(--shop-lamp-cord);
+}
+
+/* ---------- 門口的地墊 ---------- */
+
+.shop__mat {
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--su) * 12);
+  background: var(--shop-mat);
+  color: var(--shop-mat-ink);
+  font-size: calc(var(--su) * 34);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+}

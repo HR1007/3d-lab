@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜烘焙店</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/display-case.css" />
+    <link rel="stylesheet" href="styles/hedgehog.css" />
+    <link rel="stylesheet" href="styles/shop.css" />
+    <!--
+      順序有關係：props.js 準備好餅乾、麵包、展示櫃 → shop.js 蓋出整間店 →
+      characters.js 把小栗長進櫃台後面的空殼 → rotate.js、controls.js 接手互動
+    -->
+    <script src="scripts/props.js" defer></script>
+    <script src="scripts/shop.js" defer></script>
+    <script src="scripts/characters.js" defer></script>
+    <script src="scripts/rotate.js" defer></script>
+    <script src="scripts/controls.js" defer></script>
+  </head>
+  <body>
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html">01 紙盒</a>
+          <a href="display-case.html">02 展示櫃</a>
+          <a href="hedgehog.html">03 小栗</a>
+          <a href="bakery.html" aria-current="page">04 烘焙店</a>
+        </nav>
+        <h1 class="lab__title">烘焙店</h1>
+        <p class="lab__lead">
+          「日日餅乾」整間店都是平面：地板、天花板、三面牆圍成房間，左牆兩座餅乾展示櫃，
+          右牆四層麵包架，最裡面是櫃台、收銀機，小栗站在櫃台後面。數值照 Figma「烘焙店場景」，
+          鏡頭預設在門口，也就是之後小遊戲的視角。
+        </p>
+      </header>
+
+      <section class="lab__demo" data-rotate-root>
+        <div
+          class="scene scene--shop"
+          data-rotate-stage
+          tabindex="0"
+          role="group"
+          aria-roledescription="3D 場景"
+          aria-label="烘焙店日日餅乾 3D 場景"
+          aria-describedby="shop-hint"
+        >
+          <div id="shop" class="shop" data-camera="door">
+            <!-- 整間店由 scripts/shop.js 產生（遊戲頁共用同一份） -->
+            <div class="shop__room" data-scene="bakery" data-rotate-target aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="lab__controls">
+          <div class="lab__control" role="group" aria-label="鏡頭" data-control="camera" data-control-target="#shop">
+            <span class="lab__control-label" aria-hidden="true">鏡頭</span>
+            <button type="button" data-value="door" aria-pressed="true">門口</button>
+            <button type="button" data-value="cases" aria-pressed="false">展示櫃</button>
+            <button type="button" data-value="bread" aria-pressed="false">麵包架</button>
+            <button type="button" data-value="counter" aria-pressed="false">櫃台</button>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p id="shop-hint">拖曳轉頭看看四周・方向鍵每次 10°・按 0 或雙擊轉回正前方</p>
+          <p class="lab__readout">X <output data-readout-x>0°</output>　Y <output data-readout-y>0°</output></p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>做法重點</h2>
+        <table>
+          <thead>
+            <tr><th>部位</th><th>做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>房間</td><td>寬 1200 × 深 1200 × 高 700。地板轉 X 90°、天花板轉 X −90°、左右牆轉 Y ±90°，各自往裡推 600 圍成一圈；後牆直接推到 −1200</td></tr>
+            <tr><td>鏡頭</td><td>CSS 的眼睛固定不動，所以反過來動房間：轉軸放在眼睛上，先把要站的點移到眼睛的位置，再繞眼睛轉頭。四個鏡頭數字登記成有型別的 CSS 變數，換鏡頭時直接補間</td></tr>
+            <tr><td>展示櫃</td><td>跟展示櫃頁同一份，整座轉 Y 90° 靠在左牆，一座 Depth −390、一座 −900</td></tr>
+            <tr><td>麵包</td><td>正面圖立在層板上（不是平躺），轉 Y −60° 朝向走道；4 種各用 SVG <code>&lt;symbol&gt;</code> 畫一次</td></tr>
+            <tr><td>吊燈</td><td>電線、燈罩、光暈畫在同一張平面上，跟著鏡頭反方向轉，永遠看到正面</td></tr>
+            <tr><td>櫃台與小栗</td><td>櫃台從 Figma 的 200 高降到 110，站在後面的小栗才露得出整張臉</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

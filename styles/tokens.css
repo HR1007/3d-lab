@@ -169,6 +169,77 @@
   --hh-basket: #c8955b;
   --hh-basket-dark: #9e6b3a;
   --hh-shadow: rgba(0, 0, 0, 0.22);
+
+  /* ---------- 麵包（Figma「Bread」4 種正面圖） ---------- */
+
+  --bread-golden: #d4862f; /* 餐包、可頌兩端 */
+  --bread-golden-mid: #de963c;
+  --bread-golden-light: #e9a84e;
+  --bread-line: #a9651f;
+  --bread-shine: rgba(246, 205, 134, 0.8);
+  --bread-roll-shine: rgba(243, 194, 122, 0.85);
+  --bread-seed: #fff3d6;
+  --bread-crust: #b86e2e; /* 吐司 */
+  --bread-crumb: #f6e2be;
+  --bread-cinnamon: #d9984f; /* 肉桂捲 */
+  --bread-swirl: #9c5a26;
+  --bread-icing: rgba(255, 255, 255, 0.9);
+
+  /* ---------- 烘焙店（Figma「烘焙店場景」，房間 寬 1200 × 深 1200 × 高 700） ---------- */
+
+  /*
+    烘焙店的「Figma 1px」。整個取景框（Figma 的 Viewport，1200 × 760）永遠撐滿舞台寬度，
+    所以直接用舞台寬度換算：100cqw ÷ 1200。舞台多寬場景就多大，手機也不用另外設倍率。
+    （cqw 會在每個用到 --su 的元素上，以最近的 container——烘焙店的舞台——來算）
+  */
+  --su: calc(100cqw / 1200);
+
+  /* 換鏡頭時移動的時間與曲線：慢進慢出，像走過去再轉頭 */
+  --shop-cam-duration: 1200ms;
+  --shop-cam-ease: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --shop-backdrop: #eadccb; /* 取景框底色（Figma Viewport 的填色） */
+  --shop-floor: #f3e9dc;
+  --shop-floor-tile: #e0d0ba;
+  --shop-ceiling: #fbf5ec;
+  --shop-beam: #d9bc98;
+  --shop-wall-back: #f7e9d4;
+  --shop-wall-left: #f4e4cc;
+  --shop-wall-right: #efdcc0;
+  --shop-wainscot: #d8b48a;
+  --shop-trim: #b98b5e;
+  --shop-sign: var(--case-wood-deep);
+  --shop-sign-ink: var(--case-cream);
+  --shop-board: #2f3b35; /* 黑板菜單 */
+  --shop-board-frame: var(--case-wood);
+  --shop-chalk: #ffffff;
+  --shop-chalk-muted: rgba(255, 255, 255, 0.6);
+  --shop-door: #5a3b27; /* 工房入口 */
+  --shop-noren: var(--hh-apron);
+  --shop-noren-ink: var(--case-wood-deep);
+  --shop-poster: #fff8ee;
+  --shop-poster-frame: var(--case-wood);
+  --shop-poster-ink: var(--case-wood-deep);
+  --shop-rack: #c99a6b; /* 麵包層架的背板 */
+  --shop-rack-frame: var(--case-wood);
+  --shop-rack-ink: var(--case-wood-deep);
+  --shop-shelf: #b98b5e;
+  --shop-shelf-edge: var(--case-wood-dark);
+  --shop-counter: var(--case-wood);
+  --shop-counter-lip: var(--case-wood-deep);
+  --shop-counter-side: var(--case-wood-dark);
+  --shop-counter-top: #f7f3ee;
+  --shop-register: #7fa7c9;
+  --shop-register-top: #9cc0dd;
+  --shop-register-side: #6a93b5;
+  --shop-screen: #2f3b35;
+  --shop-tray: #ffffff;
+  --shop-mat: var(--case-wood-dark);
+  --shop-mat-ink: var(--case-cream);
+  --shop-lamp-cord: #2f463c;
+  --shop-lamp-shade: #3e5c4f;
+  --shop-lamp-bulb: #fff3c4;
+  --shop-lamp-glow: rgba(255, 233, 168, 0.55);
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
