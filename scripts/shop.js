@@ -203,6 +203,9 @@
 
   const ROOM = [floor, ceiling, backWall, leftWall, rightWall, mat, cases, racks, counter, register, tray, clerk, lamps].join('');
 
+  // 擺放工具給遊戲頁的店門口（scripts/storefront.js）沿用，座標系跟這間店一致
+  window.Lab.shop = { vars, part, deco };
+
   ensureDefs();
   for (const room of document.querySelectorAll('[data-scene="bakery"]')) {
     room.innerHTML = ROOM;
