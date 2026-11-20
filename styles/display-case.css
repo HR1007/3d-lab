@@ -1,6 +1,6 @@
 /*
-  甜甜圈展示櫃。結構照 Figma「烘焙展示櫃」：
-    .scene  ＝ 外層加 Perspective 900 的 frame
+  餅乾展示櫃。結構照 Figma「烘焙展示櫃」：
+    .scene--case ＝ 展示櫃頁的舞台，外層加 Perspective 900 的 frame（放進烘焙店時不用這一層）
     .case   ＝ 「Display Case」frame（preserve-3d），整體轉 X −15°、Y −25°
     .part   ＝ 櫃子的每一片平面
     .cookie ＝ 每個位置的餅乾（俯視圖整片轉 X 90° 平躺，底下墊同形狀的剪影做厚度，可以疊成一疊）
@@ -8,9 +8,10 @@
   每一片的 --l / --t / --w / --h 就是 Figma 裡那個圖層的 x / y / 寬 / 高，
   transform 也是照抄 Figma 的 3D transform（translateZ → rotateX → rotateY）。
   所有數字都乘上 --cu（展示櫃的「Figma 1px」），改 --case-scale 就整個等比縮放。
+  櫃子裡的 HTML 由 scripts/props.js 產生。
 */
 
-.scene {
+.scene--case {
   height: var(--case-stage-height);
   display: grid;
   place-items: center;
