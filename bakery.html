@@ -48,9 +48,9 @@
           aria-label="烘焙店日日餅乾 3D 場景"
           aria-describedby="shop-hint"
         >
-          <div id="shop" class="shop" data-camera="door">
-            <!-- 整間店由 scripts/shop.js 產生（遊戲頁共用同一份） -->
-            <div class="shop__room" data-scene="bakery" data-rotate-target aria-hidden="true"></div>
+          <div id="shop" class="shop" data-camera="door" data-rotate-target>
+            <!-- 整間店由 scripts/shop.js 產生（遊戲頁共用同一份）：這一層是牆面，擺設那層會長在它後面；拖曳的角度改在 #shop 上，兩層一起轉 -->
+            <div class="shop__room" data-scene="bakery" aria-hidden="true"></div>
           </div>
         </div>
 

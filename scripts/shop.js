@@ -6,6 +6,12 @@
   改一個位置得改兩處。頁面上放 <div class="shop__room" data-scene="bakery"></div>，
   這支就會把整間店填進去。
 
+  店分成兩層 .shop__room（套同一個鏡頭）：這一層放地板、天花板、三面牆，
+  展示櫃、麵包架、櫃台、吊燈、小栗這些擺設長在緊接著的第二層 .shop__room--fixtures。
+  全部放在同一個 3D 空間時，Chrome 排前後會把被切成碎片的牆漏畫幾塊，轉頭時牆上破洞、露出背景。
+  分開之後擺設那層直接疊在上面，而這樣疊一定是對的：鏡頭永遠在三面牆、地板、天花板圍起來的那一側，
+  房間裡的擺設一定比牆面離鏡頭近。
+
   數值照 Figma「烘焙店場景」的建置腳本：
     - 房間 寬 1200 × 深 1200 × 高 700。原點在門口左上角，x 往右、y 往下，越往店裡面 z 越負
     - 每一片平面以「中心點」擺放（跟 Figma 腳本的 put() 一樣），3D transform 照抄
@@ -201,13 +207,17 @@
 
   const mat = part('shop__mat', [320, 180], [600, 699], { x: 90, z: -300 }, '<p class="shop__mat-text">WELCOME</p>');
 
-  const ROOM = [floor, ceiling, backWall, leftWall, rightWall, mat, cases, racks, counter, register, tray, clerk, lamps].join('');
+  const SHELL = [floor, ceiling, backWall, leftWall, rightWall].join('');
+  const FIXTURES = [mat, cases, racks, counter, register, tray, clerk, lamps].join('');
 
   // 擺放工具給遊戲頁的店門口（scripts/storefront.js）沿用，座標系跟這間店一致
   window.Lab.shop = { vars, part, deco };
 
   ensureDefs();
   for (const room of document.querySelectorAll('[data-scene="bakery"]')) {
-    room.innerHTML = ROOM;
+    room.innerHTML = SHELL;
+    // 擺設那層跟著牆面那層的 aria-hidden：烘焙店頁整間都是裝飾，遊戲頁的商品之後要能點
+    const hidden = room.hasAttribute('aria-hidden') ? ' aria-hidden="true"' : '';
+    room.insertAdjacentHTML('afterend', `<div class="shop__room shop__room--fixtures"${hidden}>${FIXTURES}</div>`);
   }
 })();

@@ -90,6 +90,15 @@
   --case-frame-width: calc(var(--cu) * 2);
   --ch-bob: calc(var(--chu) * -6);
 
+  /*
+    拖曳的角度（scripts/rotate.js 改的）寫在取景框上，店分成好幾層 .shop__room，
+    每一層都從這裡繼承同一個角度，轉頭時才會一起轉。
+  */
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+
   position: relative;
   height: calc(var(--su) * 760);
   overflow: hidden;
@@ -135,14 +144,11 @@
   把房間的轉軸（transform-origin）放在眼睛上，先把「鏡頭要站的點」平移到眼睛的位置，再繞著眼睛轉頭。
   眼睛在房間座標裡是 (600, 315, 700)，房間擺在讓這一點剛好落在取景框正中央的位置
   （1200 × 760 的取景框裡就是往下 65；遊戲頁手機版的取景框比較高，眼睛照樣在正中央）。
-  --rx / --ry 是拖曳的角度（scripts/rotate.js 改的）。轉頭的方向跟拖曳相反，
+  --rx / --ry 是拖曳的角度（從 .shop 繼承）。轉頭的方向跟拖曳相反，
   畫面才會跟著手指走（像街景：往左拖，看到右邊的東西）。
+  店分成好幾層（牆面、擺設…，見 scripts/shop.js），每一層都套這個 transform，疊在同一個位置。
 */
 .shop__room {
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
-  --rx: var(--tilt-x);
-  --ry: var(--tilt-y);
   position: absolute;
   left: calc(50% - var(--su) * 600);
   top: calc(50% - var(--su) * 315);
