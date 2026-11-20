@@ -7,6 +7,7 @@
 
   顏色全部是 CSS 變數（styles/tokens.css 的 --hh-*、--rabbit-*、--bear-*、--fox-*、--ch-*），這裡只有形狀。
   座標是 Figma「Hedgehog Baker」的 200 × 260 畫板；小栗跟 Figma 裡的向量一模一樣。
+  三位顧客比小栗更圓潤：頭比較大、身體矮胖，尖角都修成圓弧。
 
   要在 characters.js 之前執行完的東西：沒有。rotate.js 要排在這支後面（兩支都 defer，照順序執行）。
 */
@@ -133,8 +134,8 @@
     nose +
     // 平常：豆豆眼、小小的微笑
     `<g data-face="normal">` +
-    `<ellipse cx="78" cy="${y}" rx="6" ry="7.5" ${fill('--ch-eye')} /><circle cx="80.3" cy="${y - 3.2}" r="2.2" ${fill('--ch-eye-shine')} />` +
-    `<ellipse cx="122" cy="${y}" rx="6" ry="7.5" ${fill('--ch-eye')} /><circle cx="124.3" cy="${y - 3.2}" r="2.2" ${fill('--ch-eye-shine')} />` +
+    `<ellipse cx="78" cy="${y}" rx="7" ry="8" ${fill('--ch-eye')} /><circle cx="80.6" cy="${y - 3.4}" r="2.5" ${fill('--ch-eye-shine')} />` +
+    `<ellipse cx="122" cy="${y}" rx="7" ry="8" ${fill('--ch-eye')} /><circle cx="124.6" cy="${y - 3.4}" r="2.5" ${fill('--ch-eye-shine')} />` +
     `<path d="M93 ${mouth} Q100 ${mouth + 6} 107 ${mouth}" ${line('--ch-ink', 2.2)} />` +
     `</g>` +
     // 開心：瞇成彎彎的眼睛、張嘴笑（拿到對的商品時）
@@ -154,12 +155,12 @@
   // 手：空手時兩隻手垂在身體兩側；結帳後提著印有店標的紙袋
   const customerArms = (paw) =>
     `<g data-carry-item="none">` +
-    `<ellipse cx="60" cy="200" rx="12" ry="13" ${fill(paw)} /><ellipse cx="140" cy="200" rx="12" ry="13" ${fill(paw)} />` +
+    `<circle cx="56" cy="206" r="13" ${fill(paw)} /><circle cx="144" cy="206" r="13" ${fill(paw)} />` +
     `</g>` +
     `<g data-carry-item="bag">` +
     `<path d="M86 196 Q86 178 100 178 Q114 178 114 196" ${line('--bag-kraft-dark', 3)} />` +
-    `<path d="M72 194 H128 L132 242 Q132 244 130 244 H70 Q68 244 68 242 Z" ${fill('--bag-kraft')} />` +
-    `<rect x="72" y="194" width="56" height="8" ${fill('--bag-kraft-dark')} />` +
+    `<path d="M77 194 H123 Q129 194 129 200 L132 236 Q133 245 124 245 H76 Q67 245 68 236 L71 200 Q71 194 77 194 Z" ${fill('--bag-kraft')} />` +
+    `<path d="M77 194 H123 Q129 194 129 200 V202 H71 V200 Q71 194 77 194 Z" ${fill('--bag-kraft-dark')} />` +
     `<circle cx="100" cy="222" r="10" ${fill('--bag-logo')} />` +
     `<g ${fill('--bag-kraft')}><circle cx="96.5" cy="219" r="1.6" /><circle cx="103.5" cy="220.5" r="1.6" /><circle cx="99" cy="226" r="1.6" /></g>` +
     `<ellipse cx="86" cy="190" rx="11" ry="10" ${fill(paw)} /><ellipse cx="114" cy="190" rx="11" ry="10" ${fill(paw)} />` +
@@ -171,31 +172,33 @@
       'back',
       -30,
       // 長耳朵從頭後面豎起來，稍微往外張；尾巴是背後的一團棉花球，轉到側面才看得到
-      `<g transform="rotate(-10 78 74)"><ellipse cx="78" cy="44" rx="16" ry="44" ${fill('--rabbit-fur')} /><ellipse cx="78" cy="46" rx="8" ry="32" ${fill('--rabbit-ear-inner')} /></g>` +
-        `<g transform="rotate(10 122 74)"><ellipse cx="122" cy="44" rx="16" ry="44" ${fill('--rabbit-fur')} /><ellipse cx="122" cy="46" rx="8" ry="32" ${fill('--rabbit-ear-inner')} /></g>` +
-        `<circle cx="100" cy="214" r="18" ${fill('--rabbit-muzzle')} />`
+      `<g transform="rotate(-12 76 76)"><ellipse cx="76" cy="44" rx="19" ry="42" ${fill('--rabbit-fur')} /><ellipse cx="76" cy="46" rx="10" ry="30" ${fill('--rabbit-ear-inner')} /></g>` +
+        `<g transform="rotate(12 124 76)"><ellipse cx="124" cy="44" rx="19" ry="42" ${fill('--rabbit-fur')} /><ellipse cx="124" cy="46" rx="10" ry="30" ${fill('--rabbit-ear-inner')} /></g>` +
+        `<circle cx="100" cy="218" r="19" ${fill('--rabbit-muzzle')} />`
     ),
     layer(
       'body',
       -14,
       feet('--rabbit-fur-shade') +
-        `<ellipse cx="100" cy="200" rx="50" ry="44" ${fill('--rabbit-cardigan')} />` +
-        `<path d="M86 158 L100 198 L114 158 Z" ${fill('--rabbit-muzzle')} />` +
-        `<path d="M100 198 V242" ${line('--rabbit-cardigan-dark', 2)} />` +
-        `<circle cx="100" cy="212" r="3.2" ${fill('--rabbit-button')} /><circle cx="100" cy="228" r="3.2" ${fill('--rabbit-button')} />`
+        `<ellipse cx="100" cy="206" rx="56" ry="40" ${fill('--rabbit-cardigan')} />` +
+        // 開襟衫的領口：圓弧的 U 字，不是尖的 V
+        `<path d="M84 166 Q100 214 116 166 Z" ${fill('--rabbit-muzzle')} />` +
+        `<path d="M100 192 V244" ${line('--rabbit-cardigan-dark', 2)} />` +
+        `<circle cx="100" cy="212" r="3.6" ${fill('--rabbit-button')} /><circle cx="100" cy="228" r="3.6" ${fill('--rabbit-button')} />`
     ),
     layer(
       'head',
       0,
-      `<ellipse cx="100" cy="112" rx="58" ry="52" ${fill('--rabbit-fur')} />` +
-        `<ellipse cx="100" cy="134" rx="25" ry="16" ${fill('--rabbit-muzzle')} />`
+      `<ellipse cx="100" cy="112" rx="64" ry="58" ${fill('--rabbit-fur')} />` +
+        `<ellipse cx="100" cy="136" rx="27" ry="17" ${fill('--rabbit-muzzle')} />`
     ),
     layer(
       'hat',
       4,
-      // 左耳根的蝴蝶結
-      `<path d="M70 66 L54 56 L56 78 Z" ${fill('--rabbit-ribbon')} /><path d="M70 66 L86 56 L84 78 Z" ${fill('--rabbit-ribbon')} />` +
-        `<circle cx="70" cy="66" r="5" ${fill('--rabbit-ribbon-dark')} />`
+      // 左耳根的蝴蝶結：兩片圓圓的蝴蝶翅膀
+      `<path d="M68 64 C60 50 46 52 46 63 C46 74 60 78 68 64 Z" ${fill('--rabbit-ribbon')} />` +
+        `<path d="M68 64 C76 50 90 52 90 63 C90 74 76 78 68 64 Z" ${fill('--rabbit-ribbon')} />` +
+        `<circle cx="68" cy="64" r="6" ${fill('--rabbit-ribbon-dark')} />`
     ),
     layer(
       'face',
@@ -211,29 +214,33 @@
 
   // ---------- 小熊 ----------
   const BEAR_LAYERS = [
-    layer('back', -30, `<circle cx="100" cy="216" r="13" ${fill('--bear-fur-dark')} />`),
+    layer('back', -30, `<circle cx="100" cy="220" r="14" ${fill('--bear-fur-dark')} />`),
     layer(
       'body',
       -14,
       feet('--bear-fur-dark') +
-        `<ellipse cx="100" cy="200" rx="56" ry="46" ${fill('--bear-fur')} />` +
-        // 吊帶褲：下半身＋胸前的口袋片＋兩條肩帶
-        `<path d="M46 204 H154 Q152 244 100 246 Q48 244 46 204 Z" ${fill('--bear-overalls')} />` +
-        `<rect x="76" y="172" width="48" height="34" rx="5" ${fill('--bear-overalls')} />` +
-        `<rect x="90" y="182" width="20" height="12" rx="3" ${fill('--bear-overalls-dark')} />` +
-        `<path d="M80 176 L68 158 M120 176 L132 158" ${line('--bear-overalls', 6)} />` +
-        `<circle cx="82" cy="178" r="3.5" ${fill('--bear-button')} /><circle cx="118" cy="178" r="3.5" ${fill('--bear-button')} />`
+        `<ellipse cx="100" cy="206" rx="60" ry="42" ${fill('--bear-fur')} />` +
+        // 吊帶褲：下半身（上緣微微彎）＋胸前圓角的口袋片＋兩條彎彎的肩帶
+        `<path d="M42 210 Q100 218 158 210 Q156 246 100 248 Q44 246 42 210 Z" ${fill('--bear-overalls')} />` +
+        `<rect x="76" y="178" width="48" height="36" rx="12" ${fill('--bear-overalls')} />` +
+        `<rect x="89" y="188" width="22" height="13" rx="6" ${fill('--bear-overalls-dark')} />` +
+        `<path d="M82 182 Q76 170 70 164 M118 182 Q124 170 130 164" ${line('--bear-overalls', 6)} />` +
+        `<circle cx="83" cy="183" r="3.8" ${fill('--bear-button')} /><circle cx="117" cy="183" r="3.8" ${fill('--bear-button')} />`
     ),
     layer(
       'head',
       0,
-      `<circle cx="52" cy="68" r="19" ${fill('--bear-fur')} /><circle cx="52" cy="68" r="10" ${fill('--bear-ear-inner')} />` +
-        `<circle cx="148" cy="68" r="19" ${fill('--bear-fur')} /><circle cx="148" cy="68" r="10" ${fill('--bear-ear-inner')} />` +
-        `<ellipse cx="100" cy="112" rx="62" ry="54" ${fill('--bear-fur')} />` +
-        `<ellipse cx="100" cy="134" rx="27" ry="19" ${fill('--bear-muzzle')} />`
+      `<circle cx="48" cy="66" r="21" ${fill('--bear-fur')} /><circle cx="48" cy="66" r="11" ${fill('--bear-ear-inner')} />` +
+        `<circle cx="152" cy="66" r="21" ${fill('--bear-fur')} /><circle cx="152" cy="66" r="11" ${fill('--bear-ear-inner')} />` +
+        `<ellipse cx="100" cy="112" rx="66" ry="58" ${fill('--bear-fur')} />` +
+        `<ellipse cx="100" cy="136" rx="29" ry="20" ${fill('--bear-muzzle')} />`
     ),
-    // 脖子上的紅色領巾
-    layer('hat', 4, `<path d="M68 158 Q100 170 132 158 L100 186 Z" ${fill('--bear-scarf')} />`),
+    // 脖子上的紅色領巾：圓弧的三角巾，尖端修圓
+    layer(
+      'hat',
+      4,
+      `<path d="M64 160 Q100 174 136 160 Q130 174 114 184 Q100 192 86 184 Q70 174 64 160 Z" ${fill('--bear-scarf')} />`
+    ),
     layer(
       'face',
       6,
@@ -249,36 +256,41 @@
   ].join('');
 
   // ---------- 狐狸 ----------
+  // 狐狸的左耳：外層橘色、內層淺色、耳尖深色，耳尖畫成圓弧。右耳是它左右翻過來
+  const FOX_EAR =
+    `<path d="M44 94 C38 66 42 42 52 32 C58 26 66 28 74 36 C84 46 94 56 100 68 Z" ${fill('--fox-fur')} />` +
+    `<path d="M58 82 C55 66 57 52 62 48 C66 45 71 48 77 55 C82 60 86 64 88 68 Z" ${fill('--fox-ear-inner')} />` +
+    `<path d="M52 32 C58 26 66 28 74 36 C68 42 60 46 50 49 C49 42 49 37 52 32 Z" ${fill('--fox-dark')} />`;
+
   const FOX_LAYERS = [
     layer(
       'back',
       -30,
       // 蓬鬆的大尾巴往右上翹，從正面也看得到一截；尾巴尖是白的
-      `<g transform="rotate(40 160 190)"><ellipse cx="160" cy="190" rx="22" ry="46" ${fill('--fox-fur')} /><ellipse cx="160" cy="157" rx="14" ry="15" ${fill('--fox-white')} /></g>`
+      `<g transform="rotate(40 160 192)"><ellipse cx="160" cy="192" rx="27" ry="48" ${fill('--fox-fur')} /><ellipse cx="160" cy="158" rx="17" ry="16" ${fill('--fox-white')} /></g>`
     ),
     layer(
       'body',
       -14,
       feet('--fox-dark') +
-        `<ellipse cx="100" cy="200" rx="50" ry="44" ${fill('--fox-fur')} />` +
-        `<ellipse cx="100" cy="208" rx="30" ry="32" ${fill('--fox-white')} />`
+        `<ellipse cx="100" cy="206" rx="56" ry="40" ${fill('--fox-fur')} />` +
+        `<ellipse cx="100" cy="212" rx="33" ry="29" ${fill('--fox-white')} />`
     ),
     layer(
       'head',
       0,
-      // 尖耳朵：外層橘色、內層淺色、耳尖深色
-      `<path d="M50 92 L56 30 L96 66 Z" ${fill('--fox-fur')} /><path d="M60 80 L62 46 L84 66 Z" ${fill('--fox-ear-inner')} /><path d="M56 30 L54 50 L69 42 Z" ${fill('--fox-dark')} />` +
-        `<path d="M150 92 L144 30 L104 66 Z" ${fill('--fox-fur')} /><path d="M140 80 L138 46 L116 66 Z" ${fill('--fox-ear-inner')} /><path d="M144 30 L146 50 L131 42 Z" ${fill('--fox-dark')} />` +
-        `<ellipse cx="100" cy="112" rx="62" ry="52" ${fill('--fox-fur')} />` +
-        // 下半張臉是白的，兩頰往外尖出去
-        `<path d="M40 116 Q58 162 100 164 Q142 162 160 116 Q132 136 100 128 Q68 136 40 116 Z" ${fill('--fox-white')} />`
+      // 兩隻耳朵（右耳是左耳翻過來）
+      `<g>${FOX_EAR}</g><g transform="translate(200 0) scale(-1 1)">${FOX_EAR}</g>` +
+        `<ellipse cx="100" cy="112" rx="66" ry="56" ${fill('--fox-fur')} />` +
+        // 下半張臉是白的，兩頰往外鼓成圓弧
+        `<path d="M42 114 Q32 122 40 138 Q58 166 100 168 Q142 166 160 138 Q168 122 158 114 Q130 138 100 130 Q70 138 42 114 Z" ${fill('--fox-white')} />`
     ),
-    // 脖子上的青綠色圍巾，垂下來一截
+    // 脖子上的青綠色圍巾，兩端圓圓的，垂下來一截
     layer(
       'hat',
       4,
-      `<path d="M62 156 Q100 172 138 156 L136 170 Q100 186 64 170 Z" ${fill('--fox-scarf')} />` +
-        `<path d="M116 170 L128 200 L112 198 Z" ${fill('--fox-scarf-dark')} />`
+      `<path d="M60 158 Q100 174 140 158 Q145 166 137 173 Q100 190 63 173 Q55 166 60 158 Z" ${fill('--fox-scarf')} />` +
+        `<path d="M113 174 Q130 182 129 198 Q121 206 112 199 Q109 186 113 174 Z" ${fill('--fox-scarf-dark')} />`
     ),
     layer(
       'face',
