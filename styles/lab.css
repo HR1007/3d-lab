@@ -56,6 +56,13 @@ body {
   text-underline-offset: 0.35em;
 }
 
+/* 放 SVG <symbol> 定義的容器：本身不佔版面也不顯示 */
+.lab__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 
 .lab__title {
   margin: var(--sp-1) 0 var(--sp-2);

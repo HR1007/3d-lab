@@ -29,6 +29,6 @@ Figma 的 transform origin 預設在圖層中心，CSS 也是，所以數值可�
 ## 進度
 
 1. 紙盒 — `index.html`
-2. 展示櫃 — 待做
+2. 展示櫃 — `display-case.html`（4 種餅乾各用 SVG `<symbol>` 畫一次、`<use>` 引用；一層 4×2，部分疊成一疊）
 3. 刺蝟麵包師「小栗」 — 待做
 4. 烘焙店場景 — 待做

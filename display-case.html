@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜展示櫃</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/display-case.css" />
+    <!-- 一般 script（不是 module），直接雙擊打開也能跑 -->
+    <script src="scripts/rotate.js" defer></script>
+  </head>
+  <body>
+    <!--
+      餅乾的「component」：每種只畫一次（俯視圖＋同形狀的深色剪影），櫃子裡全部用 <use> 引用。
+      改這裡的一種餅乾，櫃子裡同款的會全部一起變。座標是 54 × 54 的 Figma 單位。
+      巧克力豆的不規則邊緣與果醬夾心的花邊是用公式算出來的輪廓：
+        巧克力豆 r = 24.5 + 0.9·sin(5θ + 0.4) + 0.6·sin(9θ + 1.3)
+        果醬夾心 r = 23 + 1.5·cos(12θ)
+    -->
+    <svg class="lab__defs" aria-hidden="true" focusable="false">
+      <!-- 巧克力豆餅乾 -->
+      <symbol id="cookie-chip-edge" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-edge)" d="M52.4 27.0 L52.6 29.5 L51.9 32.0 L50.9 34.2 L49.7 36.4 L48.5 38.5 L47.4 40.6 L45.9 42.5 L44.1 44.1 L42.0 45.3 L40.0 46.4 L38.1 47.7 L36.2 49.3 L34.3 51.0 L32.0 52.3 L29.5 52.8 L27.0 52.5 L24.6 51.6 L22.3 50.6 L20.1 49.8 L17.8 49.1 L15.6 48.3 L13.6 47.1 L11.8 45.6 L10.1 43.9 L8.4 42.2 L6.6 40.6 L4.7 38.9 L3.1 36.9 L2.2 34.5 L2.2 31.9 L2.8 29.4 L3.4 27.0 L3.8 24.7 L3.9 22.4 L4.0 20.0 L4.4 17.6 L5.3 15.4 L6.6 13.4 L8.0 11.4 L9.5 9.5 L11.0 7.4 L12.8 5.7 L15.0 4.5 L17.5 4.0 L20.1 4.1 L22.5 4.2 L24.7 4.1 L27.0 3.5 L29.4 2.8 L31.9 2.5 L34.3 2.9 L36.6 3.8 L38.7 5.1 L40.8 6.4 L42.8 7.7 L44.8 9.2 L46.3 11.1 L47.3 13.4 L47.9 15.8 L48.4 18.1 L49.1 20.3 L50.3 22.4 L51.5 24.6 Z" />
+      </symbol>
+      <symbol id="cookie-chip" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-dough)" d="M52.4 27.0 L52.6 29.5 L51.9 32.0 L50.9 34.2 L49.7 36.4 L48.5 38.5 L47.4 40.6 L45.9 42.5 L44.1 44.1 L42.0 45.3 L40.0 46.4 L38.1 47.7 L36.2 49.3 L34.3 51.0 L32.0 52.3 L29.5 52.8 L27.0 52.5 L24.6 51.6 L22.3 50.6 L20.1 49.8 L17.8 49.1 L15.6 48.3 L13.6 47.1 L11.8 45.6 L10.1 43.9 L8.4 42.2 L6.6 40.6 L4.7 38.9 L3.1 36.9 L2.2 34.5 L2.2 31.9 L2.8 29.4 L3.4 27.0 L3.8 24.7 L3.9 22.4 L4.0 20.0 L4.4 17.6 L5.3 15.4 L6.6 13.4 L8.0 11.4 L9.5 9.5 L11.0 7.4 L12.8 5.7 L15.0 4.5 L17.5 4.0 L20.1 4.1 L22.5 4.2 L24.7 4.1 L27.0 3.5 L29.4 2.8 L31.9 2.5 L34.3 2.9 L36.6 3.8 L38.7 5.1 L40.8 6.4 L42.8 7.7 L44.8 9.2 L46.3 11.1 L47.3 13.4 L47.9 15.8 L48.4 18.1 L49.1 20.3 L50.3 22.4 L51.5 24.6 Z" />
+        <ellipse cx="24" cy="23" rx="15" ry="13" style="fill: var(--cookie-dough-light)" />
+        <g style="fill: var(--cookie-chip)">
+          <ellipse cx="17" cy="18" rx="3.2" ry="2.4" transform="rotate(20 17 18)" />
+          <ellipse cx="31" cy="13" rx="2.8" ry="2.2" transform="rotate(-30 31 13)" />
+          <ellipse cx="39" cy="26" rx="3.4" ry="2.6" transform="rotate(45 39 26)" />
+          <ellipse cx="25" cy="29" rx="3" ry="2.3" transform="rotate(-10 25 29)" />
+          <ellipse cx="13" cy="34" rx="2.6" ry="2.1" transform="rotate(60 13 34)" />
+          <ellipse cx="33" cy="40" rx="3.3" ry="2.5" transform="rotate(15 33 40)" />
+          <ellipse cx="43" cy="37" rx="2.4" ry="2" transform="rotate(-40 43 37)" />
+          <ellipse cx="21" cy="44" rx="2.6" ry="2" transform="rotate(30 21 44)" />
+        </g>
+      </symbol>
+
+      <!-- 果醬夾心 -->
+      <symbol id="cookie-jam-edge" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-edge)" d="M51.5 27.0 L50.5 29.3 L48.5 31.3 L47.7 33.3 L48.2 35.8 L48.5 38.5 L47.0 40.4 L44.3 41.2 L42.2 42.2 L41.2 44.3 L40.4 47.0 L38.5 48.5 L35.8 48.2 L33.3 47.7 L31.3 48.5 L29.3 50.5 L27.0 51.5 L24.7 50.5 L22.7 48.5 L20.7 47.7 L18.2 48.2 L15.5 48.5 L13.6 47.0 L12.8 44.3 L11.8 42.2 L9.7 41.2 L7.0 40.4 L5.5 38.5 L5.8 35.8 L6.3 33.3 L5.5 31.3 L3.5 29.3 L2.5 27.0 L3.5 24.7 L5.5 22.7 L6.3 20.7 L5.8 18.2 L5.5 15.5 L7.0 13.6 L9.7 12.8 L11.8 11.8 L12.8 9.7 L13.6 7.0 L15.5 5.5 L18.2 5.8 L20.7 6.3 L22.7 5.5 L24.7 3.5 L27.0 2.5 L29.3 3.5 L31.3 5.5 L33.3 6.3 L35.8 5.8 L38.5 5.5 L40.4 7.0 L41.2 9.7 L42.2 11.8 L44.3 12.8 L47.0 13.6 L48.5 15.5 L48.2 18.2 L47.7 20.7 L48.5 22.7 L50.5 24.7 Z" />
+      </symbol>
+      <symbol id="cookie-jam" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-butter)" d="M51.5 27.0 L50.5 29.3 L48.5 31.3 L47.7 33.3 L48.2 35.8 L48.5 38.5 L47.0 40.4 L44.3 41.2 L42.2 42.2 L41.2 44.3 L40.4 47.0 L38.5 48.5 L35.8 48.2 L33.3 47.7 L31.3 48.5 L29.3 50.5 L27.0 51.5 L24.7 50.5 L22.7 48.5 L20.7 47.7 L18.2 48.2 L15.5 48.5 L13.6 47.0 L12.8 44.3 L11.8 42.2 L9.7 41.2 L7.0 40.4 L5.5 38.5 L5.8 35.8 L6.3 33.3 L5.5 31.3 L3.5 29.3 L2.5 27.0 L3.5 24.7 L5.5 22.7 L6.3 20.7 L5.8 18.2 L5.5 15.5 L7.0 13.6 L9.7 12.8 L11.8 11.8 L12.8 9.7 L13.6 7.0 L15.5 5.5 L18.2 5.8 L20.7 6.3 L22.7 5.5 L24.7 3.5 L27.0 2.5 L29.3 3.5 L31.3 5.5 L33.3 6.3 L35.8 5.8 L38.5 5.5 L40.4 7.0 L41.2 9.7 L42.2 11.8 L44.3 12.8 L47.0 13.6 L48.5 15.5 L48.2 18.2 L47.7 20.7 L48.5 22.7 L50.5 24.7 Z" />
+        <circle cx="27" cy="27" r="12" style="fill: var(--cookie-butter-dark)" />
+        <circle cx="27" cy="27" r="8.5" style="fill: var(--cookie-jam)" />
+        <ellipse cx="24.5" cy="24" rx="3" ry="1.8" transform="rotate(-30 24.5 24)" style="fill: var(--cookie-jam-shine)" />
+      </symbol>
+
+      <!-- 棋盤餅乾：4 × 4 格，深色格放在 (列 + 欄) 為奇數的位置 -->
+      <symbol id="cookie-checker-edge" viewBox="0 0 54 54">
+        <rect x="5" y="5" width="44" height="44" rx="2" style="fill: var(--cookie-edge)" />
+      </symbol>
+      <symbol id="cookie-checker" viewBox="0 0 54 54">
+        <rect x="5" y="5" width="44" height="44" rx="2" style="fill: var(--cookie-checker-light)" />
+        <g style="fill: var(--cookie-checker-dark)">
+          <rect x="16" y="5" width="11" height="11" /><rect x="38" y="5" width="11" height="11" />
+          <rect x="5" y="16" width="11" height="11" /><rect x="27" y="16" width="11" height="11" />
+          <rect x="16" y="27" width="11" height="11" /><rect x="38" y="27" width="11" height="11" />
+          <rect x="5" y="38" width="11" height="11" /><rect x="27" y="38" width="11" height="11" />
+        </g>
+      </symbol>
+
+      <!-- 糖霜愛心：愛心尖端朝 symbol 的下方，平躺後會朝向櫃子前面 -->
+      <symbol id="cookie-heart-edge" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-edge)" d="M27 48 C10 36 3 26 7 16 C11 6 23 6 27 15 C31 6 43 6 47 16 C51 26 44 36 27 48 Z" />
+      </symbol>
+      <symbol id="cookie-heart" viewBox="0 0 54 54">
+        <path style="fill: var(--cookie-sugar)" d="M27 48 C10 36 3 26 7 16 C11 6 23 6 27 15 C31 6 43 6 47 16 C51 26 44 36 27 48 Z" />
+        <path style="fill: var(--cookie-icing)" d="M27 43 C13 33 8 25 11 17 C14 10 23 10 27 18 C31 10 40 10 43 17 C46 25 41 33 27 43 Z" />
+        <g style="fill: var(--cookie-icing-dot)">
+          <circle cx="17" cy="20" r="1.2" /><circle cx="22" cy="27" r="1.2" /><circle cx="31" cy="24" r="1.2" />
+          <circle cx="37" cy="19" r="1.2" /><circle cx="27" cy="33" r="1.2" /><circle cx="35" cy="29" r="1.2" />
+        </g>
+      </symbol>
+    </svg>
+
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html">01 紙盒</a>
+          <a href="display-case.html" aria-current="page">02 展示櫃</a>
+        </nav>
+        <h1 class="lab__title">展示櫃</h1>
+        <p class="lab__lead">
+          玻璃前板、側板、層板、底座、燈帶全部是平面，用 3D transform 組起來。餅乾本來就是扁的，
+          用平面來做最自然：俯視圖整片轉 X 90° 平躺，一層 4×2，有幾處疊成 2～3 片一疊。
+          數值照 Figma「烘焙展示櫃」，整體放大 1.25 倍。
+        </p>
+      </header>
+
+      <section class="lab__demo" data-rotate-root>
+        <div
+          class="scene"
+          data-rotate-stage
+          tabindex="0"
+          role="group"
+          aria-roledescription="3D 模型"
+          aria-label="餅乾展示櫃 3D 模型"
+          aria-describedby="case-hint"
+        >
+          <div class="case" data-rotate-target aria-hidden="true">
+            <div class="part case__back"></div>
+
+            <div class="part case__base-top"></div>
+            <div class="part case__base-left"></div>
+            <div class="part case__base-right"></div>
+            <div class="part case__base-front">
+              <p class="case__name">日日餅乾</p>
+              <p class="case__name case__name--latin">COOKIE DAILY</p>
+              <div class="case__kick"></div>
+            </div>
+
+            <div class="part case__shelf case__shelf--2"></div>
+            <div class="part case__shelf-edge case__shelf-edge--2"></div>
+            <div class="part case__shelf case__shelf--3"></div>
+            <div class="part case__shelf-edge case__shelf-edge--3"></div>
+
+            <!-- 第 1 層（高度 300） -->
+            <div class="cookie" style="--x: 84; --y: 300; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -9; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -9; --dx: 0"><use href="#cookie-chip" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 14; --dx: 1.5"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 14; --dx: 1.5"><use href="#cookie-chip" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 2; --r: 37; --dx: -1"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 2; --r: 37; --dx: -1"><use href="#cookie-chip" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 300; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -12; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -12; --dx: 0"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 300; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -15; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -15; --dx: 0"><use href="#cookie-jam" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 8; --dx: 1.5"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 8; --dx: 1.5"><use href="#cookie-jam" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 300; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -18; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -18; --dx: 0"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 84; --y: 300; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 10; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 10; --dx: 0"><use href="#cookie-heart" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 33; --dx: 1.5"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 33; --dx: 1.5"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 300; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 7; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 7; --dx: 0"><use href="#cookie-chip" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 300; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 4; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 4; --dx: 0"><use href="#cookie-checker" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 27; --dx: 1.5"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 27; --dx: 1.5"><use href="#cookie-checker" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 2; --r: 50; --dx: -1"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 2; --r: 50; --dx: -1"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 300; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 1; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 1; --dx: 0"><use href="#cookie-jam" /></svg></div>
+
+            <!-- 第 2 層（高度 210） -->
+            <div class="cookie" style="--x: 84; --y: 210; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 2; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 2; --dx: 0"><use href="#cookie-jam" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 210; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -1; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -1; --dx: 0"><use href="#cookie-heart" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 22; --dx: 1.5"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 22; --dx: 1.5"><use href="#cookie-heart" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 2; --r: 45; --dx: -1"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 2; --r: 45; --dx: -1"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 210; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -4; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -4; --dx: 0"><use href="#cookie-chip" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 19; --dx: 1.5"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 19; --dx: 1.5"><use href="#cookie-chip" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 210; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -7; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -7; --dx: 0"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 84; --y: 210; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -19; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -19; --dx: 0"><use href="#cookie-checker" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 4; --dx: 1.5"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 4; --dx: 1.5"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 210; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 18; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 18; --dx: 0"><use href="#cookie-jam" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 41; --dx: 1.5"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 41; --dx: 1.5"><use href="#cookie-jam" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 2; --r: 64; --dx: -1"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 2; --r: 64; --dx: -1"><use href="#cookie-jam" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 210; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 15; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 15; --dx: 0"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 210; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 12; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 12; --dx: 0"><use href="#cookie-chip" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 35; --dx: 1.5"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 35; --dx: 1.5"><use href="#cookie-chip" /></svg></div>
+
+            <!-- 第 3 層（高度 120） -->
+            <div class="cookie" style="--x: 84; --y: 120; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 13; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 13; --dx: 0"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 120; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 10; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 10; --dx: 0"><use href="#cookie-chip" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 33; --dx: 1.5"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 33; --dx: 1.5"><use href="#cookie-chip" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 120; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 7; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 7; --dx: 0"><use href="#cookie-jam" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 120; --z: -36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: 4; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: 4; --dx: 0"><use href="#cookie-checker" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 27; --dx: 1.5"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 27; --dx: 1.5"><use href="#cookie-checker" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 2; --r: 50; --dx: -1"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 2; --r: 50; --dx: -1"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 84; --y: 120; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -8; --dx: 0"><use href="#cookie-chip-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -8; --dx: 0"><use href="#cookie-chip" /></svg></div>
+            <div class="cookie" style="--x: 188; --y: 120; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -11; --dx: 0"><use href="#cookie-checker-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -11; --dx: 0"><use href="#cookie-checker" /></svg></div>
+            <div class="cookie" style="--x: 292; --y: 120; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -14; --dx: 0"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -14; --dx: 0"><use href="#cookie-heart" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 9; --dx: 1.5"><use href="#cookie-heart-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 9; --dx: 1.5"><use href="#cookie-heart" /></svg></div>
+            <div class="cookie" style="--x: 396; --y: 120; --z: 36"><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 0; --r: -17; --dx: 0"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 0; --r: -17; --dx: 0"><use href="#cookie-jam" /></svg><svg class="cookie__edge" viewBox="0 0 54 54" style="--k: 1; --r: 6; --dx: 1.5"><use href="#cookie-jam-edge" /></svg><svg class="cookie__top" viewBox="0 0 54 54" style="--k: 1; --r: 6; --dx: 1.5"><use href="#cookie-jam" /></svg></div>
+
+            <div class="part case__glass case__glass--left"></div>
+            <div class="part case__glass case__glass--right"></div>
+
+            <div class="part case__roof"></div>
+            <div class="part case__roof-left"></div>
+            <div class="part case__roof-right"></div>
+            <div class="part case__light"></div>
+            <div class="part case__led"></div>
+
+            <div class="part case__glass case__glass--front"></div>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p id="case-hint">拖曳旋轉・方向鍵每次 10°・按 0 或雙擊回到預設角度</p>
+          <p class="lab__readout">X <output data-readout-x>−15°</output>　Y <output data-readout-y>−25°</output></p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>做法重點</h2>
+        <table>
+          <thead>
+            <tr><th>部位</th><th>做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>餅乾</td><td>俯視圖整片轉 X 90° 平躺。4 種各用 SVG <code>&lt;symbol&gt;</code> 畫一次、<code>&lt;use&gt;</code> 引用，等於 Figma 的 component 與 instance</td></tr>
+            <tr><td>餅乾的厚度</td><td>每片底下墊一張同形狀的深色剪影，比頂面低 2.5，從斜上方看會在前緣露出一圈</td></tr>
+            <tr><td>一疊餅乾</td><td>每片都是一個平面，一片往上墊 3；每片繞垂直軸轉一點、錯開一點，看起來是隨手疊的</td></tr>
+            <tr><td>玻璃</td><td>半透明底色疊兩道斜向反光漸層；從內外都要看得到，所以不關背面</td></tr>
+            <tr><td>燈帶</td><td>上亮下暖的漸層，背板上緣也調亮，模擬燈光往下打</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

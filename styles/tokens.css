@@ -72,12 +72,64 @@
   --box-band: #e2703a;
   --box-band-ink: #ffffff;
   --box-line: #c9a27e;
+
+  /* ---------- 展示櫃（Figma「烘焙展示櫃」，櫃子 寬 480 × 深 160 × 高 380） ---------- */
+
+  /*
+    展示櫃自己的「Figma 1px」。櫃子比紙盒大很多，倍率跟紙盒分開。
+    [需確認] 原本定 1.5 倍，實測加上透視後投影寬 798px、超出 818px 的舞台
+    （靠近鏡頭的那一側被放大），所以桌面版改 1.25 倍；手機 0.6 倍。
+  */
+  --case-scale: 1.25;
+  --cu: calc(1px * var(--case-scale));
+  --case-stage-height: calc(var(--cu) * 520);
+  /*
+    從斜上方看，櫃子的投影整體會往下偏（前緣離鏡頭近、被放大），
+    置中後底部會切到。往上挪 31（Figma 單位）抵銷，數值是實測投影中心的偏移量。
+  */
+  --case-offset-y: calc(var(--cu) * -31);
+  --case-perspective: calc(var(--cu) * 900); /* Figma 的 Perspective 900 */
+  --case-tilt-x: -15deg;
+  --case-tilt-y: -25deg;
+  --case-frame-width: calc(var(--cu) * 2); /* 玻璃的框，Figma 的 stroke 2 */
+
+  --case-wood: #a86f45;
+  --case-wood-dark: #8e5c38;
+  --case-wood-deep: #7a4e31;
+  --case-cream: #fff4e2;
+  --case-shelf: #f8eedf;
+  --case-shelf-edge: #d9c2a3;
+  --case-wall-top: #fff3d6; /* 背板上緣較亮，模擬燈帶往下打的光 */
+  --case-wall-bottom: #ebd9bf;
+  --case-light-top: #fff6d6;
+  --case-light-bottom: #ffd978;
+  --case-led: #fff8dc;
+  --case-frame: #7a5236;
+  --case-glass: rgba(207, 232, 245, 0.22);
+  --case-glass-shine: rgba(255, 255, 255, 0.55);
+  --case-glass-shine-soft: rgba(255, 255, 255, 0.35);
+
+  /* 餅乾（4 種）。[需確認] 配色是暫定值 */
+  --cookie-edge: #a8692f; /* 墊在每片底下做厚度的深色剪影，4 種共用 */
+  --cookie-dough: #e0a65e; /* 巧克力豆餅乾 */
+  --cookie-dough-light: #ebb978;
+  --cookie-chip: #4a2c1d;
+  --cookie-butter: #ecc285; /* 果醬夾心 */
+  --cookie-butter-dark: #dfa865;
+  --cookie-jam: #c8323c;
+  --cookie-jam-shine: rgba(255, 255, 255, 0.45);
+  --cookie-checker-light: #f3d9a4; /* 棋盤餅乾 */
+  --cookie-checker-dark: #6b4128;
+  --cookie-sugar: #e9b97a; /* 糖霜愛心 */
+  --cookie-icing: #f7a8c4;
+  --cookie-icing-dot: #ffffff;
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
 @media (max-width: 767px) {
   :root {
     --box-scale: 1.5;
+    --case-scale: 0.6;
     --stage-height: 440px;
     --font-size-h1: 28px;
   }
