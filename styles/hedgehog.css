@@ -1,0 +1,144 @@
+/*
+  小栗（刺蝟店員）。分層紙偶，結構照 Figma「Hedgehog Baker」：
+    .hedgehog          被轉的元素（preserve-3d），整體角度用 --rx / --ry
+    .hedgehog__shadow  腳下的影子，平躺在地上，不跟著身體上下晃
+    .hedgehog__rig     身體本體；走路時整個上下晃、左右擺
+    .hh-layer          6 層平面，每層用 --depth 前後錯開（Figma 的 Depth）：
+                         背刺 −30、身體 −14、頭 0、廚師帽 +4、五官 +6、圍裙和手 +18
+
+  狀態全部用 data 屬性切換，遊戲那一頁直接改屬性就好：
+    data-expression  normal（平常）／happy（開心）／flustered（慌張）
+    data-walking     true 時走路
+    data-carry       basket（提籃子）／baguette（拿法棍）
+
+  尺寸以 --hu（小栗的「Figma 1px」）為單位，放進不同場景時在容器上覆寫 --hu 即可。
+  圖層的 SVG 由 scripts/characters.js 產生。
+*/
+
+.hedgehog {
+  --tilt-x: var(--hh-tilt-x);
+  --tilt-y: var(--hh-tilt-y);
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+  position: relative;
+  width: calc(var(--hu) * 200);
+  height: calc(var(--hu) * 260);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+}
+
+.hedgehog.is-settling {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.hedgehog__rig {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* 左右擺的支點在腳底，擺起來像在走路，而不是整隻在空中晃 */
+  transform-origin: 50% 95%;
+}
+
+.hh-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: translateZ(calc(var(--hu) * var(--depth)));
+}
+
+.hedgehog__shadow {
+  position: absolute;
+  left: calc(var(--hu) * 30);
+  top: calc(var(--hu) * 225);
+  width: calc(var(--hu) * 140);
+  height: calc(var(--hu) * 50);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--hh-shadow), transparent);
+  /* 中心對齊腳底（Figma 座標 y 250），轉 X 90° 平躺在地上 */
+  transform: rotateX(90deg);
+}
+
+/* ---------- 表情：五官那一層裡有三組，一次只顯示一組 ---------- */
+
+.hedgehog [data-face] {
+  display: none;
+}
+.hedgehog[data-expression='normal'] [data-face='normal'],
+.hedgehog[data-expression='happy'] [data-face='happy'],
+.hedgehog[data-expression='flustered'] [data-face='flustered'] {
+  display: inline;
+}
+
+/* ---------- 手上拿的東西：籃子（遊戲用）或法棍（Figma 原版） ---------- */
+
+.hedgehog [data-carry-item] {
+  display: none;
+}
+.hedgehog[data-carry='basket'] [data-carry-item='basket'],
+.hedgehog[data-carry='baguette'] [data-carry-item='baguette'] {
+  display: inline;
+}
+
+/* ---------- 走路：身體上下晃＋左右擺，兩隻腳輪流抬起 ---------- */
+
+.hedgehog[data-walking='true'] .hedgehog__rig {
+  animation: hh-bob var(--hh-walk-duration) ease-in-out infinite;
+}
+
+.hedgehog[data-walking='true'] .hh-foot {
+  animation: hh-step var(--hh-walk-duration) ease-in-out infinite;
+}
+
+.hedgehog[data-walking='true'] .hh-foot--r {
+  animation-delay: calc(var(--hh-walk-duration) / -2);
+}
+
+@keyframes hh-bob {
+  0%,
+  50%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  25% {
+    translate: 0 var(--hh-bob);
+    rotate: -2deg;
+  }
+  75% {
+    translate: 0 var(--hh-bob);
+    rotate: 2deg;
+  }
+}
+
+@keyframes hh-step {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 var(--hh-step);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hedgehog[data-walking='true'] .hedgehog__rig,
+  .hedgehog[data-walking='true'] .hh-foot {
+    animation: none;
+  }
+  .hedgehog.is-settling {
+    transition: none;
+  }
+}
+
+/* ---------- 小栗展示頁的舞台 ---------- */
+
+.scene--hedgehog {
+  height: var(--hh-stage-height);
+  display: grid;
+  place-items: center;
+  perspective: var(--hh-perspective);
+  background: linear-gradient(var(--hh-stage-top), var(--hh-stage-bottom));
+}

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜小栗</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/hedgehog.css" />
+    <!-- 順序有關係：先長出角色的圖層，rotate.js 再接手旋轉 -->
+    <script src="scripts/characters.js" defer></script>
+    <script src="scripts/rotate.js" defer></script>
+    <script src="scripts/controls.js" defer></script>
+  </head>
+  <body>
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html">01 紙盒</a>
+          <a href="display-case.html">02 展示櫃</a>
+          <a href="hedgehog.html" aria-current="page">03 小栗</a>
+        </nav>
+        <h1 class="lab__title">小栗</h1>
+        <p class="lab__lead">
+          原創刺蝟店員，照 Figma「Hedgehog Baker」做成 6 層的分層紙偶，每層用 Depth 前後錯開，轉個角度就看得出層次。
+          小遊戲裡由你操作小栗，所以多了三種表情、走路的動作，手上改提籃子。
+        </p>
+      </header>
+
+      <section class="lab__demo" data-rotate-root>
+        <div
+          class="scene scene--hedgehog"
+          data-rotate-stage
+          tabindex="0"
+          role="group"
+          aria-roledescription="3D 模型"
+          aria-label="刺蝟店員小栗 3D 模型"
+          aria-describedby="hh-hint"
+        >
+          <div
+            id="hh"
+            class="hedgehog"
+            data-rotate-target
+            data-character="hedgehog"
+            data-expression="normal"
+            data-walking="false"
+            data-carry="basket"
+          ></div>
+        </div>
+
+        <div class="lab__controls">
+          <div class="lab__control" role="group" aria-label="表情" data-control="expression" data-control-target="#hh">
+            <span class="lab__control-label" aria-hidden="true">表情</span>
+            <button type="button" data-value="normal" aria-pressed="true">平常</button>
+            <button type="button" data-value="happy" aria-pressed="false">開心</button>
+            <button type="button" data-value="flustered" aria-pressed="false">慌張</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="動作" data-control="walking" data-control-target="#hh">
+            <span class="lab__control-label" aria-hidden="true">動作</span>
+            <button type="button" data-value="false" aria-pressed="true">站著</button>
+            <button type="button" data-value="true" aria-pressed="false">走路</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="手上拿的" data-control="carry" data-control-target="#hh">
+            <span class="lab__control-label" aria-hidden="true">手上</span>
+            <button type="button" data-value="basket" aria-pressed="true">籃子</button>
+            <button type="button" data-value="baguette" aria-pressed="false">法棍</button>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p id="hh-hint">拖曳旋轉・方向鍵每次 10°・按 0 或雙擊回到預設角度</p>
+          <p class="lab__readout">X <output data-readout-x>−8°</output>　Y <output data-readout-y>25°</output></p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>做法重點</h2>
+        <table>
+          <thead>
+            <tr><th>部位</th><th>做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>分層（後 → 前）</td><td>背刺 −30、身體 −14、頭 0、廚師帽 +4、五官 +6、圍裙和手 +18（Depth，Figma 單位）</td></tr>
+            <tr><td>表情</td><td>五官那一層畫了三組，用 <code>data-expression</code> 切換，一次只顯示一組</td></tr>
+            <tr><td>走路</td><td>身體整個上下晃、以腳底為支點左右擺 2°；兩隻腳輪流抬起，相差半步</td></tr>
+            <tr><td>影子</td><td>腳下一個橢圓漸層轉 X 90° 平躺；放在身體外面，所以走路時身體晃、影子不晃</td></tr>
+            <tr><td>籃子</td><td>提把和籃身之間留了一個空位，第 6 輪遊戲拿到的商品會放在這裡</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

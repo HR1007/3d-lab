@@ -31,6 +31,7 @@
   --sp-8: 120px;
 
   --radius: 16px;
+  --radius-pill: 999px;
   --content-width: 900px;
   --focus-ring: 2px;
 
@@ -123,6 +124,51 @@
   --cookie-sugar: #e9b97a; /* 糖霜愛心 */
   --cookie-icing: #f7a8c4;
   --cookie-icing-dot: #ffffff;
+
+  /* ---------- 小栗（刺蝟店員，Figma「Hedgehog Baker」，200 × 260） ---------- */
+
+  /*
+    小栗自己的「Figma 1px」。之後放進烘焙店時角色要小很多，
+    那一頁只要在容器上覆寫 --hu 就好，不用改這裡。[需確認] 1.5 倍／手機 1.1 倍
+  */
+  --hh-scale: 1.5;
+  --hu: calc(1px * var(--hh-scale));
+  --hh-stage-height: calc(var(--hu) * 360);
+  --hh-perspective: calc(var(--hu) * 700); /* Figma 小栗展示用的 Perspective 700 */
+  --hh-tilt-x: -8deg; /* 預設稍微側身，一打開就看得出分層 */
+  --hh-tilt-y: 25deg;
+  --hh-stage-top: #fbf6ef; /* 舞台用 Figma 小栗畫板的暖色漸層：白色廚師帽在純白底上會看不見 */
+  --hh-stage-bottom: #eadccb;
+
+  /* 走路：一步的時間、身體上下晃的高度、腳抬起的高度 */
+  --hh-walk-duration: 420ms;
+  --hh-bob: calc(var(--hu) * -6);
+  --hh-step: -4px; /* 這個位移套在 SVG 裡的腳上，單位是 SVG 座標，會跟著 SVG 一起縮放 */
+
+  --hh-spine-dark: #6e4430;
+  --hh-spine: #9a6644;
+  --hh-body: #ddae80;
+  --hh-belly: #f6ddbf;
+  --hh-foot: #6e4430;
+  --hh-ear: #e3b38a;
+  --hh-ear-inner: #f4c7ae;
+  --hh-face: #fbe7cf;
+  --hh-snout: #fff3e3;
+  --hh-hat: #ffffff;
+  --hh-hat-line: #e6ded3;
+  --hh-eye: #2b1d14;
+  --hh-eye-shine: #ffffff;
+  --hh-blush: rgba(244, 163, 163, 0.85);
+  --hh-nose: #4a2e1f;
+  --hh-tongue: #f28b8b;
+  --hh-sweat: #9ad3f5;
+  --hh-apron: #e9a23b;
+  --hh-pocket: #d18a26;
+  --hh-baguette: #d9a05b;
+  --hh-baguette-score: #b9773a;
+  --hh-basket: #c8955b;
+  --hh-basket-dark: #9e6b3a;
+  --hh-shadow: rgba(0, 0, 0, 0.22);
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
@@ -130,6 +176,7 @@
   :root {
     --box-scale: 1.5;
     --case-scale: 0.6;
+    --hh-scale: 1.1;
     --stage-height: 440px;
     --font-size-h1: 28px;
   }
