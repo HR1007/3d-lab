@@ -378,6 +378,37 @@
   --game-button-bg: var(--case-wood-deep);
   --game-button-hover: var(--case-wood-dark);
   --game-button-ink: var(--case-cream);
+
+  /* ---------- 小遊戲：英文填字（6-2）[需確認] ---------- */
+
+  --quiz-width: 400px; /* 最長的字有 7 個字母，一排要放得下 */
+  --quiz-slot-size: 44px; /* 單字的每一格 */
+  --quiz-slot-gap: 6px;
+  --quiz-choice-size: 64px; /* 三個字母選項，小朋友用手指也好按 */
+  --quiz-hint-size: 28px; /* 中文提示 */
+  --quiz-letter-size: 26px;
+  --quiz-choice-text: 30px;
+  --quiz-icon-size: 22px;
+  --quiz-timer-height: 8px;
+  --quiz-blank: #ffffff;
+  --quiz-current: var(--front-awning-a); /* 現在要填的那一格 */
+  --quiz-correct: #3f8a5b;
+  --quiz-correct-bg: #e3f2e6;
+  --quiz-wrong: var(--cookie-jam);
+  --quiz-timer-track: var(--card-line);
+  --quiz-timer-fill: var(--front-trim-light);
+  --quiz-star: #f2b63c;
+  --quiz-star-off: var(--card-line);
+  --result-width: 560px;
+  --result-item-min: 150px;
+  --result-speak-size: 36px;
+  --result-star-size: 40px;
+
+  --play-walk-duration: 2200ms; /* 顧客從入口走到櫃台 */
+  --play-fade-duration: 300ms; /* 顧客在入口淡入、淡出 */
+  --play-react-duration: 1400ms; /* 答完之後開心或著急的時間，再走出去 */
+  --play-frown-duration: 800ms; /* 選錯時顧客皺眉多久 */
+  --play-shake-duration: 360ms;
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */

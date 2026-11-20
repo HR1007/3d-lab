@@ -9,7 +9,7 @@
     .game[data-phase]   street 店外／entering 推門進店／tour 導覽／ready 準備開店／open 營業中
     .shop[data-camera]  鏡頭：street（店外）＋烘焙店頁的 door／cases／bread／counter
     .shop[data-door]    closed／open
-  第 6-2 輪的遊戲本體從 open 接手：開始營業時會在 .game 上發出 game:open 事件。
+  遊戲本體（scripts/play.js）從 open 接手：開始營業時在 .game 上發出 game:open，回到店門口時發出 game:reset。
 
   載入順序：props.js → shop.js → storefront.js → characters.js → 這支（最後，整間店都長好了）
 */
@@ -40,9 +40,9 @@
   const TOUR = [
     { camera: 'cases', title: '餅乾展示櫃', text: '左邊兩座展示櫃放餅乾：巧克力豆、果醬夾心、棋盤、糖霜愛心。' },
     { camera: 'bread', title: '麵包架', text: '右邊的層架放麵包：餐包、可頌、吐司、肉桂捲。' },
-    { camera: 'counter', title: '櫃台', text: '小栗站在櫃台後面。顧客點好餐，點商品讓小栗去拿，拿齊了點收銀機結帳。' },
+    { camera: 'counter', title: '櫃台', text: '小栗站在櫃台後面。顧客走到櫃台前會出一個英文單字，把缺的字母補上，就完成這筆訂單。' },
   ];
-  const READY = { title: '準備好了嗎？', text: '今天會有 15 位顧客上門，每一位都在等，動作要快喔。', next: '開始營業' };
+  const READY = { title: '準備好了嗎？', text: '今天會有 15 位顧客上門，在時間內拼出他們要的單字，讓他們開心回家！', next: '開始營業' };
 
   // ---------- 小工具 ----------
 
@@ -144,13 +144,15 @@
     delete shop.dataset.instant;
     status.hidden = true;
     onNext = null;
+    game.dispatchEvent(new CustomEvent('game:reset'));
     atStreet();
   }
 
   door.addEventListener('click', enter);
   nextButton.addEventListener('click', () => onNext?.());
   skipButton.addEventListener('click', ready);
-  document.querySelector('[data-game-restart]')?.addEventListener('click', restart);
+  // 舞台下方和成績頁各有一顆「回到店門口」
+  for (const button of document.querySelectorAll('[data-game-restart]')) button.addEventListener('click', restart);
 
   atStreet();
 })();

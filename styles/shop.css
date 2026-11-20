@@ -50,9 +50,9 @@
 }
 
 /*
-  鏡頭：眼睛在房間裡的位置（Figma 單位）與左右轉頭的角度。
-  登記成有型別的變數，換鏡頭時才能直接補間這四個數字——房間的 transform、
-  吊燈轉向鏡頭的角度都是從這四個數字算出來的，會一起跟著動。
+  鏡頭：眼睛在房間裡的位置（Figma 單位）、左右轉頭與低頭的角度。
+  登記成有型別的變數，換鏡頭時才能直接補間這些數字——房間的 transform、
+  吊燈轉向鏡頭的角度都是從這些數字算出來的，會一起跟著動。
 */
 @property --cam-x {
   syntax: '<number>';
@@ -70,6 +70,12 @@
   initial-value: 550;
 }
 @property --cam-yaw {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+/* 低頭幾度（正的往下看）。烘焙店頁的鏡頭都是 0；遊戲頁手機版營業時往下看，櫃台才不會被題目卡蓋住 */
+@property --cam-pitch {
   syntax: '<angle>';
   inherits: true;
   initial-value: 0deg;
@@ -107,7 +113,8 @@
     --cam-x var(--shop-cam-duration) var(--shop-cam-ease),
     --cam-y var(--shop-cam-duration) var(--shop-cam-ease),
     --cam-z var(--shop-cam-duration) var(--shop-cam-ease),
-    --cam-yaw var(--shop-cam-duration) var(--shop-cam-ease);
+    --cam-yaw var(--shop-cam-duration) var(--shop-cam-ease),
+    --cam-pitch var(--shop-cam-duration) var(--shop-cam-ease);
 }
 
 /*
@@ -156,7 +163,7 @@
   height: calc(var(--su) * 700);
   transform-style: preserve-3d;
   transform-origin: calc(var(--su) * 600) calc(var(--su) * 315) calc(var(--su) * 700);
-  transform: rotateX(calc(-1 * var(--rx))) rotateY(calc(var(--cam-yaw) - var(--ry)))
+  transform: rotateX(calc(-1 * var(--rx) - var(--cam-pitch))) rotateY(calc(var(--cam-yaw) - var(--ry)))
     translate3d(
       calc(var(--su) * (600 - var(--cam-x))),
       calc(var(--su) * (315 - var(--cam-y))),

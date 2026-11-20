@@ -1,0 +1,392 @@
+/*
+  小遊戲本體（6-2）：英文單字填空。HTML 在 game.html，流程在 scripts/play.js。
+    .game__customer  走進店裡的顧客（3D 場景裡的角色），改 --l / --tz 走位
+    .bubble--hint    顧客頭上的泡泡，寫中文提示
+    .quiz            題目卡：中文提示、挖空的單字、三個字母選項、倒數條
+    .result          一局結束的成績：星星、答對幾題、15 個單字複習
+  題目卡的狀態：data-state 沒有＝作答中、correct＝答對、timeout＝時間到；data-hurry="true" 時間快到了
+*/
+
+/* ---------- 顧客 ---------- */
+
+/* 從入口淡入、淡出（透明度只在進出那一下改，平常是 1，分層紙偶的立體感不受影響） */
+.game__customer {
+  transition:
+    --l var(--play-walk-duration) linear,
+    --tz var(--play-walk-duration) linear,
+    opacity var(--play-fade-duration) var(--motion-ease);
+}
+
+.game__customer[data-presence='out'] {
+  opacity: 0;
+}
+
+/* 泡泡裡只寫中文提示；不是按鈕，游標照舊 */
+.bubble--hint {
+  cursor: default;
+}
+
+.bubble--hint:hover {
+  scale: none;
+}
+
+.bubble__hint {
+  display: block;
+  font-size: calc(var(--chu) * 30);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+/* ---------- 題目卡 ---------- */
+
+/* 桌面版放在舞台右側（顧客和小栗都在左半邊）；手機版放在下面的地板上 */
+.quiz {
+  position: absolute;
+  top: 50%;
+  right: var(--sp-2);
+  z-index: 1;
+  display: grid;
+  gap: var(--sp-2);
+  width: min(var(--quiz-width), calc(100% - var(--sp-2) * 2));
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  translate: 0 -50%;
+}
+
+.quiz[hidden] {
+  display: none;
+}
+
+.quiz__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-1);
+}
+
+.quiz__who {
+  margin: 0;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+}
+
+.quiz__speak,
+.result__speak {
+  display: grid;
+  place-items: center;
+  width: var(--game-button-height);
+  height: var(--game-button-height);
+  padding: 0;
+  border: 1px solid var(--card-line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--card-ink);
+  cursor: pointer;
+}
+
+.quiz__speak[hidden] {
+  display: none;
+}
+
+.quiz__speak svg,
+.result__speak svg {
+  width: var(--quiz-icon-size);
+  height: var(--quiz-icon-size);
+}
+
+.quiz__speak:hover,
+.result__speak:hover {
+  background: var(--card-line);
+}
+
+.quiz__hint {
+  margin: 0;
+  font-size: var(--quiz-hint-size);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+/* 單字：一個字母一格，缺的那幾格是虛線框，現在要填的那一格框成橘色 */
+.quiz__word {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--quiz-slot-gap);
+  margin: 0;
+}
+
+.quiz__slot {
+  display: grid;
+  place-items: center;
+  width: var(--quiz-slot-size);
+  height: var(--quiz-slot-size);
+  border: 1px solid var(--card-line);
+  border-radius: calc(var(--radius) / 2);
+  background: var(--quiz-blank);
+  font-size: var(--quiz-letter-size);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.quiz__slot--blank {
+  border-style: dashed;
+  border-color: var(--card-muted);
+}
+
+.quiz__slot.is-current {
+  border-style: solid;
+  border-color: var(--quiz-current);
+  box-shadow: inset 0 0 0 var(--focus-ring) var(--quiz-current);
+}
+
+.quiz__slot.is-filled {
+  border-style: solid;
+  color: var(--quiz-correct);
+}
+
+.quiz__slot.is-revealed {
+  border-style: solid;
+  color: var(--quiz-wrong);
+}
+
+.quiz[data-state='correct'] .quiz__slot {
+  border-color: var(--quiz-correct);
+  background: var(--quiz-correct-bg);
+}
+
+/* 三個字母選項 */
+.quiz__choices {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.quiz__choices:empty {
+  display: none;
+}
+
+.quiz__choice {
+  width: var(--quiz-choice-size);
+  height: var(--quiz-choice-size);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  font: inherit;
+  font-size: var(--quiz-choice-text);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.quiz__choice:hover {
+  background: var(--game-button-hover);
+}
+
+.quiz__choice:focus-visible,
+.quiz__speak:focus-visible,
+.result__speak:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+.quiz__choice.is-wrong {
+  background: var(--quiz-wrong);
+  animation: quiz-shake var(--play-shake-duration) var(--motion-ease);
+}
+
+@keyframes quiz-shake {
+  25% {
+    translate: calc(var(--sp-1) * -0.75) 0;
+  }
+  75% {
+    translate: calc(var(--sp-1) * 0.75) 0;
+  }
+}
+
+.quiz__message {
+  min-height: 1.6em;
+  margin: 0;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  text-align: center;
+}
+
+.quiz[data-state='correct'] .quiz__message {
+  color: var(--quiz-correct);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.quiz[data-state='timeout'] .quiz__message {
+  color: var(--quiz-wrong);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 倒數條：--time-left 由 1 減到 0（scripts/play.js 每一格更新），剩三成時變紅 */
+.quiz__timer {
+  height: var(--quiz-timer-height);
+  border-radius: var(--radius-pill);
+  background: var(--quiz-timer-track);
+  overflow: hidden;
+}
+
+.quiz__timer span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--quiz-timer-fill);
+  transform-origin: left center;
+  scale: var(--time-left, 1) 1;
+}
+
+.quiz[data-hurry='true'] .quiz__timer span {
+  background: var(--quiz-wrong);
+}
+
+.quiz[data-state] .quiz__timer {
+  visibility: hidden;
+}
+
+/* ---------- 成績 ---------- */
+
+.result {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  gap: var(--sp-2);
+  width: min(var(--result-width), calc(100% - var(--sp-2) * 2));
+  max-height: calc(100% - var(--sp-2) * 2);
+  overflow: auto;
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  translate: -50% -50%;
+}
+
+.result[hidden] {
+  display: none;
+}
+
+.result__title {
+  margin: 0;
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  text-align: center;
+  outline: none;
+}
+
+.result__stars {
+  margin: 0;
+  color: var(--quiz-star-off);
+  font-size: var(--result-star-size);
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.result__stars .is-on {
+  color: var(--quiz-star);
+}
+
+.result__score {
+  margin: 0;
+  text-align: center;
+}
+
+.result__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--result-item-min), 1fr));
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 一個字一行：✓ 英文 中文 🔊 */
+.result__item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--sp-1) / 2);
+  padding: calc(var(--sp-1) / 2) calc(var(--sp-1) / 2) calc(var(--sp-1) / 2) var(--sp-1);
+  border: 1px solid var(--card-line);
+  border-radius: calc(var(--radius) / 2);
+}
+
+.result__mark {
+  font-weight: var(--font-weight-bold);
+}
+
+.result__item.is-ok .result__mark {
+  color: var(--quiz-correct);
+}
+
+.result__item.is-miss .result__mark {
+  color: var(--quiz-wrong);
+}
+
+.result__en {
+  font-weight: var(--font-weight-bold);
+}
+
+.result__zh {
+  flex: 1;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+}
+
+.result__speak {
+  width: var(--result-speak-size);
+  height: var(--result-speak-size);
+}
+
+/* 單字很多時卡片會捲動，按鈕黏在卡片底部，不用捲到最下面才按得到 */
+.result__actions {
+  position: sticky;
+  bottom: calc(var(--sp-3) * -1);
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-1);
+  margin: 0 calc(var(--sp-3) * -1) calc(var(--sp-3) * -1);
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  background: var(--card-paper);
+}
+
+/* ---------- 手機版 ---------- */
+
+@media (max-width: 767px) {
+  /* 手機版：貼在下面，間距收緊，盡量少擋到上面的顧客和小栗 */
+  .quiz {
+    top: auto;
+    right: var(--sp-2);
+    bottom: var(--sp-2);
+    left: var(--sp-2);
+    width: auto;
+    gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-2) var(--sp-2);
+    translate: none;
+  }
+
+  .quiz__word,
+  .quiz__choices {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game__customer {
+    transition: none;
+  }
+  .quiz__choice.is-wrong {
+    animation: none;
+  }
+}
