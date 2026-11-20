@@ -384,19 +384,14 @@
   --quiz-width: 400px; /* 最長的字有 7 個字母，一排要放得下 */
   --quiz-slot-size: 44px; /* 單字的每一格 */
   --quiz-slot-gap: 6px;
-  --quiz-choice-size: 64px; /* 三個字母選項，小朋友用手指也好按 */
   --quiz-hint-size: 28px; /* 中文提示 */
   --quiz-letter-size: 26px;
-  --quiz-choice-text: 30px;
   --quiz-icon-size: 22px;
-  --quiz-timer-height: 8px;
   --quiz-blank: #ffffff;
   --quiz-current: var(--front-awning-a); /* 現在要填的那一格 */
   --quiz-correct: #3f8a5b;
   --quiz-correct-bg: #e3f2e6;
   --quiz-wrong: var(--cookie-jam);
-  --quiz-timer-track: var(--card-line);
-  --quiz-timer-fill: var(--front-trim-light);
   --quiz-star: #f2b63c;
   --quiz-star-off: var(--card-line);
   --result-width: 560px;
@@ -409,6 +404,37 @@
   --play-react-duration: 1400ms; /* 答完之後開心或著急的時間，再走出去 */
   --play-frown-duration: 800ms; /* 選錯時顧客皺眉多久 */
   --play-shake-duration: 360ms;
+  --play-pick-duration: 500ms; /* 小栗拿起商品的那一下 */
+
+  /* 字母商品：展示櫃頂上的糖霜餅乾、麵包上的糖霜字母 */
+  --letter-cookie: #f3d39b;
+  --letter-cookie-edge: #d9a35f;
+  --letter-cookie-dot: #b97a3f;
+  --letter-icing: #ffffff;
+  --letter-icing-line: var(--case-wood-deep);
+  --letter-hover: #fff1b8;
+
+  /* 右上角的時鐘與設定、暫停選單、開始前的倒數 */
+  --clock-width: 104px;
+  --clock-shake-duration: 500ms;
+  --pause-backdrop: rgba(42, 30, 22, 0.55);
+  --pause-width: 280px;
+  --countdown-size: 120px;
+  --countdown-step: 800ms;
+  --countdown-shadow: rgba(58, 42, 30, 0.45);
+
+  /* 遊戲說明書：木頭書皮、紙頁、一圈縫線 */
+  --book-width: 760px;
+  --book-cover: var(--case-wood-deep);
+  --book-cover-edge: 10px;
+  --book-paper: var(--card-paper);
+  --book-stitch: rgba(122, 78, 49, 0.5);
+  --book-stitch-width: 2px;
+  --book-stitch-inset: 10px;
+  --book-spine: rgba(58, 42, 30, 0.14);
+  --book-backdrop: rgba(42, 30, 22, 0.35);
+  --book-flip-duration: 420ms;
+  --book-flip-perspective: 1200px;
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
@@ -420,6 +446,7 @@
     --stage-height: 440px;
     --font-size-h1: 28px;
     --game-view-height: calc(var(--su) * 1800);
+    --countdown-size: 88px;
   }
 }
 

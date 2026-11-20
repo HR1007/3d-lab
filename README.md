@@ -25,8 +25,8 @@ Figma 的 transform origin 預設在圖層中心，CSS 也是，所以數值可�
 - 3D 物件的尺寸以「Figma 的 1px」為單位：`--u` 乘上 Figma 量到的數字；改 `--box-scale` 就整個等比縮放。
 - 斷點只用 375／768／1200。
 - 沒有任何函式庫。JS 只做兩件事：
-  - 產生重複出現的東西（`props.js` 展示櫃與商品、`characters.js` 角色、`shop.js` 整間店、`storefront.js` 店面與前廳、`order.js` 泡泡與訂單卡、`words.js` 單字表），改一處就全部一起變
-  - 互動：`rotate.js` 拖曳旋轉（改 `--rx`／`--ry` 兩個 CSS 變數）、`controls.js` 切換按鈕（改目標元素的 data 屬性）、`game.js` 遊戲開場、`play.js` 出題與計分（只決定什麼時候換下一步，動畫本身是 CSS transition；🔊 用瀏覽器內建的語音合成）
+  - 產生重複出現的東西（`props.js` 展示櫃與商品、`characters.js` 角色、`shop.js` 整間店、`storefront.js` 店面與前廳、`order.js` 泡泡與訂單卡、`letters.js` 字母商品、`words.js` 單字表），改一處就全部一起變
+  - 互動：`rotate.js` 拖曳旋轉（改 `--rx`／`--ry` 兩個 CSS 變數）、`controls.js` 切換按鈕（改目標元素的 data 屬性）、`game.js` 遊戲開場、`book.js` 說明書翻頁、`play.js` 出題、計時、暫停與計分（只決定什麼時候換下一步，動畫本身是 CSS transition；🔊 用瀏覽器內建的語音合成）
 
 ## 進度
 
@@ -35,7 +35,7 @@ Figma 的 transform origin 預設在圖層中心，CSS 也是，所以數值可�
 3. 刺蝟店員「小栗」 — `hedgehog.html`（6 層分層紙偶；三種表情、走路、提籃子／拿法棍，用 data 屬性切換；圖層由 `scripts/characters.js` 產生，分層、表情、走路的樣式在 `styles/characters.css`，之後的顧客也共用）
 4. 烘焙店「日日餅乾」 — `bakery.html`（整間店都是平面；鏡頭切換門口／展示櫃／麵包架／櫃台，拖曳可以轉頭。場景由 `scripts/shop.js` 產生，之後遊戲頁共用；展示櫃、餅乾、麵包、商品價目表集中在 `scripts/props.js`）
 5. 三位顧客與對話泡泡 — `customers.html`（兔子、小熊、狐狸，跟小栗共用 `styles/characters.css` 的分層、表情、走路；頭上的泡泡可收合成「…」，點了打開訂單卡，由 `scripts/order.js` 產生）
-6. 英文單字小遊戲 — `game.html`（開場：店外的「日日餅乾」店面，點門 → 門往店裡轉開 → 鏡頭走進店 → 導覽 → 開始營業，導覽可略過；營業：15 位顧客輪流走到櫃台前，每位帶一個挖空的英文單字和中文提示，從 3 個字母選出缺的那一個，🔊 可以聽發音，最後顯示成績與 15 個單字複習。店面與前廳由 `scripts/storefront.js` 產生，開場流程在 `scripts/game.js`，遊戲本體在 `scripts/play.js`，100 個單字在 `scripts/words.js`）
+6. 英文單字小遊戲 — `game.html`。字母就是店裡的餅乾和麵包：a–m 是展示櫃頂上的字母餅乾、n–z 是麵包架上的字母麵包（`scripts/letters.js`）。開場：店外 → 點門進店 → 導覽字母放在哪裡 → 翻遊戲說明書（`scripts/book.js`，縫線邊框、可前後翻，每頁一張遊戲截圖 `images/howto/`）→ 開始遊戲 → 3、2、1。營業：顧客出挖空的英文單字（中文提示、🔊 發音），按「餅乾櫃／麵包架」轉過去點缺的字母，小栗走過去拿回來補上；右上角時鐘倒數，快到會變紅晃動；齒輪可暫停（繼續、重新開始、遊戲說明、回到主畫面）。15 位顧客後顯示成績與單字複習（`scripts/play.js`，100 個單字在 `scripts/words.js`）
 
 ### 為什麼店分成好幾層
 

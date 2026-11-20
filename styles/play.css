@@ -1,15 +1,36 @@
 /*
-  小遊戲本體（6-2）：英文單字填空。HTML 在 game.html，流程在 scripts/play.js。
-    .game__customer  走進店裡的顧客（3D 場景裡的角色），改 --l / --tz 走位
-    .bubble--hint    顧客頭上的泡泡，寫中文提示
-    .quiz            題目卡：中文提示、挖空的單字、三個字母選項、倒數條
-    .result          一局結束的成績：星星、答對幾題、15 個單字複習
-  題目卡的狀態：data-state 沒有＝作答中、correct＝答對、timeout＝時間到；data-hurry="true" 時間快到了
+  小遊戲本體：英文單字填空，字母就是店裡的餅乾和麵包。HTML 在 game.html，流程在 scripts/play.js。
+    .letter-item     寫著字母的商品（展示櫃頂上的餅乾 a–m、麵包架上的麵包 n–z，scripts/letters.js）
+    .game__customer  走進店裡的顧客；.bubble--hint 是頭上寫中文提示的泡泡
+    .quiz            題目卡：中文提示、挖空的單字、去餅乾櫃／麵包架／回櫃台的按鈕
+    .hud             右上角的倒數時鐘與設定；.pause 是設定選單；.countdown 是開始前的 3、2、1
+    .result          一局結束的成績
+  .game[data-view] 是現在看哪裡：counter 櫃台、cookie 餅乾櫃、bread 麵包架。
 */
 
-/* ---------- 顧客 ---------- */
+/* ---------- 3D 場景裡的人和東西 ---------- */
 
-/* 從入口淡入、淡出（透明度只在進出那一下改，平常是 1，分層紙偶的立體感不受影響） */
+/* 店的每一層只是放東西的盒子，不接滑鼠，點擊才會落到門、字母商品這些真正能點的東西上 */
+.game .shop__room {
+  pointer-events: none;
+}
+
+.game .storefront__door,
+.game .letter-item {
+  pointer-events: auto;
+}
+
+/* 遊戲裡的角色永遠轉向鏡頭（跟吊燈一樣），鏡頭轉到側邊看貨架時，走過去的小栗才不會只剩一條線 */
+.game .character.shop__part {
+  transform: translateZ(calc(var(--su) * var(--tz))) rotateY(calc(var(--ry) - var(--cam-yaw)));
+}
+
+/* 去看貨架時顧客先「留在櫃台前」不畫出來，不然會擋在鏡頭和貨架中間 */
+.shop[data-camera^='shelf'] .game__customer {
+  visibility: hidden;
+}
+
+/* 顧客走位：改 --l / --tz 由 transition 補間；從入口淡入、淡出 */
 .game__customer {
   transition:
     --l var(--play-walk-duration) linear,
@@ -19,6 +40,32 @@
 
 .game__customer[data-presence='out'] {
   opacity: 0;
+}
+
+/* 小栗去拿商品：每一段路的時間依距離算（scripts/play.js 設 --move-ms） */
+.shop__clerk.is-moving {
+  transition:
+    --l var(--move-ms) linear,
+    --tz var(--move-ms) linear;
+}
+
+/* 小栗頭上帶著拿到的字母 */
+.clerk-letter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + var(--chu) * 6);
+  width: max-content;
+  margin: 0 auto;
+  padding: calc(var(--chu) * 4) calc(var(--chu) * 16);
+  border: calc(var(--chu) * 3) solid var(--letter-icing-line);
+  border-radius: calc(var(--chu) * 20);
+  background: var(--letter-cookie);
+  color: var(--letter-icing-line);
+  font-size: calc(var(--chu) * 40);
+  font-weight: var(--font-weight-black);
+  line-height: 1.1;
+  transform: translateZ(calc(var(--chu) * 30));
 }
 
 /* 泡泡裡只寫中文提示；不是按鈕，游標照舊 */
@@ -37,9 +84,161 @@
   line-height: 1.2;
 }
 
+/* ---------- 字母商品 ---------- */
+
+.letter-item {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.letter-item--cookie svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 糖霜字母：白字、深色描邊，疊在餅乾或麵包正中間 */
+.letter-item__text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--letter-icing);
+  font-size: calc(var(--su) * 40);
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  -webkit-text-stroke: calc(var(--su) * 6) var(--letter-icing-line);
+  paint-order: stroke fill;
+}
+
+.letter-item--bread .letter-item__text {
+  font-size: calc(var(--su) * 44);
+}
+
+.letter-item:hover .letter-item__text,
+.letter-item:focus-visible .letter-item__text {
+  color: var(--letter-hover);
+}
+
+.letter-item:focus-visible {
+  outline: calc(var(--su) * 4) solid var(--letter-icing-line);
+  outline-offset: calc(var(--su) * 4);
+}
+
+/* 點錯：搖一下；拿起來：跳一下（用 rotate／translate，不動到擺放用的 transform） */
+.letter-item.is-wrong {
+  animation: letter-shake var(--play-shake-duration) var(--motion-ease);
+}
+
+.letter-item.is-picked {
+  animation: letter-hop var(--play-pick-duration) var(--motion-ease);
+}
+
+@keyframes letter-shake {
+  25% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 8deg;
+  }
+}
+
+@keyframes letter-hop {
+  40% {
+    translate: 0 calc(var(--su) * -24);
+  }
+}
+
+/* ---------- 右上角：時鐘與設定 ---------- */
+
+.hud {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.hud[hidden] {
+  display: none;
+}
+
+.hud__clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--sp-1) / 2);
+  min-width: var(--clock-width);
+  height: var(--game-button-height);
+  margin: 0;
+  padding: 0 var(--sp-2);
+  border-radius: var(--radius-pill);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud__clock svg,
+.hud__gear svg {
+  width: var(--quiz-icon-size);
+  height: var(--quiz-icon-size);
+}
+
+/* 時間快到：變紅、一直晃 */
+.hud__clock[data-hurry='true'] {
+  background: var(--quiz-wrong);
+  color: var(--card-paper);
+  animation: clock-shake var(--clock-shake-duration) ease-in-out infinite;
+}
+
+@keyframes clock-shake {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 6deg;
+  }
+}
+
+.hud__gear {
+  display: grid;
+  place-items: center;
+  width: var(--game-button-height);
+  height: var(--game-button-height);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+}
+
+.hud__gear:hover {
+  background: var(--card-line);
+}
+
+.hud__gear:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
 /* ---------- 題目卡 ---------- */
 
-/* 桌面版放在舞台右側（顧客和小栗都在左半邊）；手機版放在下面的地板上 */
+/* 在櫃台：桌面版放在舞台右側（顧客和小栗在左半邊）；手機版貼在下面 */
 .quiz {
   position: absolute;
   top: 50%;
@@ -60,6 +259,21 @@
   display: none;
 }
 
+/* 在貨架前：縮成貼在下面的一條，只留單字和按鈕，不擋到貨架上的字母 */
+.game:is([data-view='cookie'], [data-view='bread']) .quiz {
+  top: auto;
+  right: auto;
+  bottom: var(--sp-2);
+  left: 50%;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
+  translate: -50% 0;
+}
+
+.game:is([data-view='cookie'], [data-view='bread']) :is(.quiz__head, .quiz__message) {
+  display: none;
+}
+
 .quiz__head {
   display: flex;
   align-items: flex-end;
@@ -71,6 +285,13 @@
   margin: 0;
   color: var(--card-muted);
   font-size: var(--font-size-meta);
+}
+
+.quiz__hint {
+  margin: 0;
+  font-size: var(--quiz-hint-size);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
 }
 
 .quiz__speak,
@@ -102,17 +323,17 @@
   background: var(--card-line);
 }
 
-.quiz__hint {
-  margin: 0;
-  font-size: var(--quiz-hint-size);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
+.quiz__speak:focus-visible,
+.result__speak:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
 }
 
-/* 單字：一個字母一格，缺的那幾格是虛線框，現在要填的那一格框成橘色 */
+/* 單字：一個字母一格，缺的那幾格是虛線框，現在要補的那一格框成橘色 */
 .quiz__word {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--quiz-slot-gap);
   margin: 0;
 }
@@ -156,57 +377,6 @@
   background: var(--quiz-correct-bg);
 }
 
-/* 三個字母選項 */
-.quiz__choices {
-  display: flex;
-  justify-content: center;
-  gap: var(--sp-2);
-}
-
-.quiz__choices:empty {
-  display: none;
-}
-
-.quiz__choice {
-  width: var(--quiz-choice-size);
-  height: var(--quiz-choice-size);
-  border: 0;
-  border-radius: var(--radius);
-  background: var(--game-button-bg);
-  color: var(--game-button-ink);
-  font: inherit;
-  font-size: var(--quiz-choice-text);
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color var(--motion-fast) var(--motion-ease);
-}
-
-.quiz__choice:hover {
-  background: var(--game-button-hover);
-}
-
-.quiz__choice:focus-visible,
-.quiz__speak:focus-visible,
-.result__speak:focus-visible {
-  outline: var(--focus-ring) solid var(--card-ink);
-  outline-offset: var(--focus-ring);
-}
-
-.quiz__choice.is-wrong {
-  background: var(--quiz-wrong);
-  animation: quiz-shake var(--play-shake-duration) var(--motion-ease);
-}
-
-@keyframes quiz-shake {
-  25% {
-    translate: calc(var(--sp-1) * -0.75) 0;
-  }
-  75% {
-    translate: calc(var(--sp-1) * 0.75) 0;
-  }
-}
-
 .quiz__message {
   min-height: 1.6em;
   margin: 0;
@@ -227,29 +397,88 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* 倒數條：--time-left 由 1 減到 0（scripts/play.js 每一格更新），剩三成時變紅 */
-.quiz__timer {
-  height: var(--quiz-timer-height);
-  border-radius: var(--radius-pill);
-  background: var(--quiz-timer-track);
-  overflow: hidden;
+/* 去餅乾櫃／麵包架／回櫃台：在哪裡就不顯示那一顆；答完就收起來 */
+.quiz__nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-1);
 }
 
-.quiz__timer span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--quiz-timer-fill);
-  transform-origin: left center;
-  scale: var(--time-left, 1) 1;
+.game[data-view='counter'] [data-go='counter'],
+.game[data-view='cookie'] [data-go='cookie'],
+.game[data-view='bread'] [data-go='bread'],
+.quiz[data-state] .quiz__nav {
+  display: none;
 }
 
-.quiz[data-hurry='true'] .quiz__timer span {
-  background: var(--quiz-wrong);
+/* ---------- 開始前的 3、2、1 ---------- */
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--card-paper);
+  font-size: var(--countdown-size);
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  text-shadow: 0 var(--focus-ring) var(--sp-3) var(--countdown-shadow);
+  pointer-events: none;
 }
 
-.quiz[data-state] .quiz__timer {
-  visibility: hidden;
+.countdown[hidden] {
+  display: none;
+}
+
+.countdown.is-tick {
+  animation: countdown-pop var(--countdown-step) var(--motion-ease);
+}
+
+@keyframes countdown-pop {
+  from {
+    opacity: 0;
+    scale: 1.6;
+  }
+  30% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ---------- 設定選單 ---------- */
+
+.pause {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  background: var(--pause-backdrop);
+}
+
+.pause[hidden] {
+  display: none;
+}
+
+.pause__panel {
+  display: grid;
+  gap: var(--sp-1);
+  width: min(var(--pause-width), calc(100% - var(--sp-2) * 2));
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+}
+
+.pause__title {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
 }
 
 /* ---------- 成績 ---------- */
@@ -282,7 +511,6 @@
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
   text-align: center;
-  outline: none;
 }
 
 .result__stars {
@@ -349,7 +577,7 @@
   height: var(--result-speak-size);
 }
 
-/* 單字很多時卡片會捲動，按鈕黏在卡片底部，不用捲到最下面才按得到 */
+/* 單字很多時卡片會捲動，按鈕黏在卡片底部 */
 .result__actions {
   position: sticky;
   bottom: calc(var(--sp-3) * -1);
@@ -364,8 +592,8 @@
 /* ---------- 手機版 ---------- */
 
 @media (max-width: 767px) {
-  /* 手機版：貼在下面，間距收緊，盡量少擋到上面的顧客和小栗 */
-  .quiz {
+  .quiz,
+  .game:is([data-view='cookie'], [data-view='bread']) .quiz {
     top: auto;
     right: var(--sp-2);
     bottom: var(--sp-2);
@@ -375,18 +603,17 @@
     padding: var(--sp-1) var(--sp-2) var(--sp-2);
     translate: none;
   }
-
-  .quiz__word,
-  .quiz__choices {
-    justify-content: center;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .game__customer {
+  .game__customer,
+  .shop__clerk.is-moving {
     transition: none;
   }
-  .quiz__choice.is-wrong {
+  .letter-item.is-wrong,
+  .letter-item.is-picked,
+  .hud__clock[data-hurry='true'],
+  .countdown.is-tick {
     animation: none;
   }
 }

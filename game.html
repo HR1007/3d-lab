@@ -14,16 +14,20 @@
     <link rel="stylesheet" href="styles/game.css" />
     <link rel="stylesheet" href="styles/order.css" />
     <link rel="stylesheet" href="styles/play.css" />
+    <link rel="stylesheet" href="styles/book.css" />
     <!--
       順序有關係：props.js 準備好商品 → shop.js 蓋出整間店 → storefront.js 在門口加上店面 →
-      characters.js 把小栗長進櫃台後面 → words.js 單字表 → game.js 接手開場 → play.js 開始營業後的遊戲
+      characters.js 把小栗長進櫃台後面 → letters.js 在餅乾、麵包上寫字母 → words.js 單字表 →
+      game.js 接手開場 → book.js 遊戲說明書 → play.js 開始營業後的遊戲
     -->
     <script src="scripts/props.js" defer></script>
     <script src="scripts/shop.js" defer></script>
     <script src="scripts/storefront.js" defer></script>
     <script src="scripts/characters.js" defer></script>
+    <script src="scripts/letters.js" defer></script>
     <script src="scripts/words.js" defer></script>
     <script src="scripts/game.js" defer></script>
+    <script src="scripts/book.js" defer></script>
     <script src="scripts/play.js" defer></script>
   </head>
   <body>
@@ -39,9 +43,9 @@
         </nav>
         <h1 class="lab__title">小遊戲</h1>
         <p class="lab__lead">
-          英文單字填空的小遊戲。站在「日日餅乾」門口，點店門走進去，看過展示櫃、麵包架、櫃台之後開始營業：
-          15 位顧客輪流走到櫃台前，每一位帶一個挖空的英文單字和中文提示，從三個字母裡選出缺的那一個，
-          拼完整個字顧客就會開心地拿著紙袋回家。
+          英文單字填空的小遊戲，字母就是店裡的餅乾和麵包。點店門走進「日日餅乾」，導覽會帶你看 a–m 的字母餅乾、
+          n–z 的字母麵包放在哪裡，再翻一翻遊戲說明書就開始營業：15 位顧客輪流到櫃台前出一個挖空的英文單字，
+          找到缺的字母、點那個餅乾或麵包，小栗就會去拿回來補上。
         </p>
       </header>
 
@@ -53,6 +57,23 @@
           </div>
 
           <p class="game__status" data-game-status hidden>營業中</p>
+
+          <!-- 右上角：倒數時鐘、設定 -->
+          <div class="hud" data-hud hidden>
+            <p class="hud__clock" data-clock data-hurry="false" role="timer" aria-label="剩下的時間">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round">
+                <circle cx="12" cy="13" r="8" /><path d="M12 9 V13 L15 15 M9 2.5 H15" />
+              </svg>
+              <span data-clock-time>0:30</span>
+            </p>
+            <button type="button" class="hud__gear" data-pause-open aria-label="設定（暫停遊戲）">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2.5 V5 M12 19 V21.5 M2.5 12 H5 M19 12 H21.5 M5.3 5.3 L7.1 7.1 M16.9 16.9 L18.7 18.7 M5.3 18.7 L7.1 16.9 M16.9 7.1 L18.7 5.3" />
+                <circle cx="12" cy="12" r="7" />
+              </svg>
+            </button>
+          </div>
 
           <!-- 題目卡：內容由 scripts/play.js 填 -->
           <div class="quiz" data-quiz role="group" aria-label="英文單字題目" hidden>
@@ -69,10 +90,16 @@
               </button>
             </div>
             <p class="quiz__word" data-quiz-word role="img"></p>
-            <div class="quiz__choices" data-quiz-choices></div>
             <p class="quiz__message" data-quiz-message aria-live="polite"></p>
-            <div class="quiz__timer" aria-hidden="true"><span></span></div>
+            <div class="quiz__nav">
+              <button type="button" class="game__button" data-go="cookie">餅乾櫃 a–m</button>
+              <button type="button" class="game__button" data-go="bread">麵包架 n–z</button>
+              <button type="button" class="game__button game__button--ghost" data-go="counter">回到櫃台</button>
+            </div>
           </div>
+
+          <!-- 開始前的 3、2、1 -->
+          <p class="countdown" data-countdown aria-live="assertive" hidden></p>
 
           <!-- 一局結束的成績 -->
           <div class="result" data-result role="dialog" aria-labelledby="result-title" hidden>
@@ -83,6 +110,60 @@
             <div class="result__actions">
               <button type="button" class="game__button game__button--ghost" data-game-restart>回到店門口</button>
               <button type="button" class="game__button" data-play-again>再玩一次</button>
+            </div>
+          </div>
+
+          <!-- 設定選單：遊戲暫停 -->
+          <div class="pause" data-pause role="dialog" aria-labelledby="pause-title" hidden>
+            <div class="pause__panel">
+              <h2 class="pause__title" id="pause-title">暫停</h2>
+              <button type="button" class="game__button" data-pause-resume>繼續</button>
+              <button type="button" class="game__button game__button--ghost" data-pause-restart>重新開始</button>
+              <button type="button" class="game__button game__button--ghost" data-pause-howto>遊戲說明</button>
+              <button type="button" class="game__button game__button--ghost" data-game-restart>回到主畫面</button>
+            </div>
+          </div>
+
+          <!-- 遊戲說明書：縫線邊框的小書，可以前後翻（scripts/book.js）-->
+          <div class="book" data-book role="dialog" aria-labelledby="book-title" hidden>
+            <div class="book__cover">
+              <div class="book__paper">
+                <div class="book__top">
+                  <h2 class="book__title" id="book-title" data-book-title tabindex="-1">遊戲說明</h2>
+                  <button type="button" class="book__skip" data-book-skip>跳過說明</button>
+                </div>
+                <section class="book__page" data-book-page>
+                  <img class="book__shot" src="images/howto/howto-1.jpg" width="800" height="450" alt="櫃台前的顧客頭上有中文提示，旁邊是挖空的英文單字題目卡" />
+                  <h3 class="book__heading">1　遊戲目標</h3>
+                  <p class="book__text">顧客走到櫃台前，用中文說他想要的東西。把英文單字缺的字母補齊，他就會拿著紙袋開心回家。一局有 15 位顧客。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-2.jpg" width="800" height="450" alt="題目卡：中文提示、挖空的單字，橘色框是現在要補的字母" />
+                  <h3 class="book__heading">2　看懂題目</h3>
+                  <p class="book__text">題目卡上有中文提示和挖空的英文單字，橘色框是現在要補的字母。第一個字母一定會給你；按 🔊 可以聽單字怎麼唸。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-3.jpg" width="800" height="450" alt="展示櫃頂上一排寫著字母的餅乾" />
+                  <h3 class="book__heading">3　字母在哪裡</h3>
+                  <p class="book__text">a 到 m 是左邊展示櫃頂上的字母餅乾，n 到 z 是右邊麵包架上的字母麵包，都照字母順序排好。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-4.jpg" width="800" height="450" alt="小栗走到展示櫃前，頭上帶著拿到的字母" />
+                  <h3 class="book__heading">4　點商品，小栗去拿</h3>
+                  <p class="book__text">按「餅乾櫃」或「麵包架」轉過去，點缺的那個字母。點對了，小栗會走過去拿回來補上；點錯了商品會搖一搖，再找一次就好。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-5.jpg" width="800" height="450" alt="畫面右上角的倒數時鐘與設定按鈕" />
+                  <h3 class="book__heading">5　時鐘與設定</h3>
+                  <p class="book__text">右上角的時鐘在倒數，時間快到時會晃動。按齒輪可以暫停，選擇繼續、重新開始、看說明或回到主畫面。</p>
+                </section>
+                <div class="book__nav">
+                  <button type="button" class="game__button game__button--ghost" data-book-prev>上一頁</button>
+                  <span class="book__count" data-book-count>1 / 5</span>
+                  <button type="button" class="game__button" data-book-next>下一頁</button>
+                  <button type="button" class="game__button" data-book-finish hidden>開始遊戲</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -106,7 +187,7 @@
         </div>
 
         <div class="lab__meta">
-          <p>點店門進店・導覽可以略過・作答時也可以直接按鍵盤上的字母</p>
+          <p>點店門進店・導覽與說明書都可以略過・遊戲中按 Esc 打開設定・電腦也可以直接按鍵盤上的字母</p>
         </div>
       </section>
 

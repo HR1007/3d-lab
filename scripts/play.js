@@ -1,69 +1,85 @@
 /*
-  小遊戲本體（6-2）：英文單字填空。
-  「開始營業」之後接手：15 位顧客輪流走到櫃台前，每一位帶一題挖空的英文單字（附中文提示），
-  玩家從 3 個字母裡選出缺的那一個，整個字補完就完成這筆訂單，顧客拿著紙袋開心離開；
-  時間到就公布答案，顧客著急地離開。最後顯示成績與這一局的 15 個單字，方便複習。
+  小遊戲本體：英文單字填空，字母就是店裡的餅乾和麵包。
+  說明書最後一頁按「開始遊戲」→ 3、2、1 倒數 → 15 位顧客輪流走到櫃台前，每位帶一個挖空的英文單字（附中文提示）。
+  玩家按「餅乾櫃 a–m」或「麵包架 n–z」轉過去，點缺的那個字母的商品，小栗就走過去拿回櫃台補上；
+  整個字補完，顧客拿著紙袋開心離開；時間到就公布答案。最後顯示成績和 15 個單字複習。
 
-  為什麼需要 JS：出題（隨機抽字、挖空、產生選項）、倒數計時、判斷對錯、記分，以及顧客一位接一位的順序。
-  動畫照舊交給 CSS：顧客走路是改 --l / --tz 由 transition 補間，表情、紙袋、泡泡是 data 屬性。
-  🔊 用瀏覽器內建的語音合成（speechSynthesis），不用另外裝任何東西；不支援的瀏覽器就不顯示按鈕。
+  為什麼需要 JS：出題、倒數、判斷對錯、記分、暫停，以及顧客、小栗、鏡頭一步接一步的順序。
+  動畫照舊交給 CSS：走路是改擺放位置的 CSS 變數由 transition 補間，鏡頭是 data-camera，表情與紙袋是 data 屬性。
+  🔊 用瀏覽器內建的語音合成（speechSynthesis），不支援的瀏覽器就不顯示按鈕。
 
-  規則 [需確認]：
-    - 每局 15 位顧客、15 個不重複的字
-    - 挖空：4 個字母以內挖 1 個、5–6 個挖 2 個、7 個以上挖 3 個；第一個字母不挖，留著當提示
-    - 選項：缺的字母＋2 個干擾字母；缺的是母音就從其他母音挑，是子音就從其他子音挑，不會一眼看穿
-    - 時間：30 秒＋每個空格 10 秒；剩三成時顧客變著急；時間到公布答案
-    - 選錯不扣時間，只有那顆按鈕搖一下、顧客皺一下眉。電腦也可以直接按鍵盤的字母
+  規則（已確認）：
+    - 每局 15 位顧客、15 個不重複的字（scripts/words.js）
+    - 挖空：4 個字母以內挖 1 格、5–6 個挖 2 格、7 個以上挖 3 格；第一個字母不挖，留著當提示
+    - 時間：每位顧客 30 秒＋每格 10 秒，小栗走路也算在時間裡；剩三成時時鐘晃動、顧客變著急
+    - 點錯字母不扣時間，商品搖一下、顧客皺一下眉
+    - 星星：答對 13 題以上三顆、9 題以上兩顆、1 題以上一顆
+  電腦也能直接按鍵盤字母（等於點那個商品）；Esc 打開或關上設定選單。
 
-  載入順序：words.js（單字）→ characters.js（顧客）→ game.js（開場）→ 這支
+  載入順序：words.js → letters.js → game.js → book.js → 這支
 */
 
 (function () {
   const game = document.querySelector('[data-game]');
   const Lab = window.Lab;
-  if (!game || !Lab.words) return;
+  if (!game || !Lab.words || !Lab.letters) return;
 
   const shop = game.querySelector('.shop');
   const clerk = shop.querySelector('.shop__clerk');
+  const fixtures = shop.querySelector('.shop__room--fixtures');
   const status = game.querySelector('[data-game-status]');
+  const $ = (selector) => game.querySelector(selector);
 
-  const quiz = game.querySelector('[data-quiz]');
-  const quizWho = quiz.querySelector('[data-quiz-who]');
-  const quizHint = quiz.querySelector('[data-quiz-hint]');
-  const quizWord = quiz.querySelector('[data-quiz-word]');
-  const quizChoices = quiz.querySelector('[data-quiz-choices]');
-  const quizMessage = quiz.querySelector('[data-quiz-message]');
-  const quizSpeak = quiz.querySelector('[data-quiz-speak]');
+  const quiz = $('[data-quiz]');
+  const quizWho = $('[data-quiz-who]');
+  const quizHint = $('[data-quiz-hint]');
+  const quizWord = $('[data-quiz-word]');
+  const quizMessage = $('[data-quiz-message]');
+  const quizSpeak = $('[data-quiz-speak]');
 
-  const result = game.querySelector('[data-result]');
-  const resultStars = result.querySelector('[data-result-stars]');
-  const resultScore = result.querySelector('[data-result-score]');
-  const resultList = result.querySelector('[data-result-list]');
+  const hud = $('[data-hud]');
+  const clock = $('[data-clock]');
+  const clockTime = $('[data-clock-time]');
+  const pauseMenu = $('[data-pause]');
+  const countdown = $('[data-countdown]');
 
-  // ---------- 規則 [需確認] ----------
+  const result = $('[data-result]');
+  const resultStars = $('[data-result-stars]');
+  const resultScore = $('[data-result-score]');
+  const resultList = $('[data-result-list]');
+
+  // ---------- 規則 ----------
 
   const ROUND = 15;
-  const TIME_BASE = 30; // 秒
-  const TIME_PER_BLANK = 10; // 秒
-  const HURRY = 0.3; // 剩下三成時間時顧客變著急
-  const VOWELS = 'aeiou';
-  const CONSONANTS = 'bcdfghklmnprstvwy';
+  const TIME_BASE = 30;
+  const TIME_PER_BLANK = 10;
+  const HURRY = 0.3;
   const blanksFor = (length) => (length <= 4 ? 1 : length <= 6 ? 2 : 3);
+  const starsFor = (correct) => (correct >= 13 ? 3 : correct >= 9 ? 2 : correct >= 1 ? 1 : 0);
 
-  // 顧客從麵包架旁邊淡入、走到櫃台左前方（不擋到櫃台後面的小栗），結帳完走回去淡出 [需確認]
-  // 門其實在鏡頭背後，從那裡走進來會先貼著鏡頭出現一隻很大的顧客，所以改從畫面右邊進出
+  // 顧客從麵包架旁淡入、走到櫃台左前方，結帳完走回去淡出（門在鏡頭背後，從那裡進來會貼著鏡頭冒出來）
   const ENTRANCE = { x: 1060, z: -640 };
   const SPOT = { x: 430, z: -780 };
   const ANIMALS = ['rabbit', 'bear', 'fox'];
+
+  /*
+    小栗去拿商品的路線：先在櫃台後面走到櫃台旁邊，再走出來到走道，最後走到商品前面。
+    走出櫃台之後換到顧客那一層（疊在店裡擺設上面），走在走道上不會被店裡的東西蓋住；
+    回到櫃台旁邊再換回擺設那一層，站在櫃台後面時才會被櫃台擋住下半身。[需確認] 走路速度
+  */
+  const HOME = { x: 640, z: -1140 };
+  const LANES = {
+    cookie: { corner: { x: 330, z: -1140 }, front: { x: 330, z: -960 }, pickX: 300 },
+    bread: { corner: { x: 970, z: -1140 }, front: { x: 970, z: -960 }, pickX: 1010 },
+  };
+  const CLERK_SPEED = 0.55; // 每毫秒走幾個單位
 
   // ---------- 小工具 ----------
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
   const durationOf = (el) => parseFloat(getComputedStyle(el).transitionDuration) * 1000 || 0;
-  // 時間長度的 token（例如 "1400ms"）換成毫秒；減少動態效果時 CSS 會把它設成 0ms
   const tokenMs = (name) => parseFloat(getComputedStyle(game).getPropertyValue(name)) || 0;
-
   const shuffle = (list) => {
     const a = [...list];
     for (let i = a.length - 1; i > 0; i--) {
@@ -73,23 +89,6 @@
     return a;
   };
 
-  // 一題：哪些位置挖空（第一個字母不挖），依位置先後補
-  function makeQuestion(word) {
-    const letters = [...word.en];
-    const candidates = letters.map((_, i) => i).slice(1);
-    const blanks = shuffle(candidates)
-      .slice(0, blanksFor(letters.length))
-      .sort((a, b) => a - b);
-    return { ...word, letters, blanks, cursor: 0 };
-  }
-
-  function choicesFor(letter) {
-    const pool = VOWELS.includes(letter) ? VOWELS : CONSONANTS;
-    const others = shuffle([...pool].filter((c) => c !== letter)).slice(0, 2);
-    return shuffle([letter, ...others]);
-  }
-
-  // 🔊 唸出英文
   const canSpeak = 'speechSynthesis' in window;
   function speak(text) {
     if (!canSpeak) return;
@@ -100,9 +99,27 @@
     speechSynthesis.speak(utterance);
   }
 
+  // ---------- 暫停：時間停住、流程停在下一步之前，按繼續才往下 ----------
+
+  let paused = false;
+  let resumeWaiters = [];
+  const gate = () => (paused ? new Promise((resolve) => resumeWaiters.push(resolve)) : Promise.resolve());
+  const pausableWait = async (ms) => {
+    await wait(ms);
+    await gate();
+  };
+
+  // ---------- 鏡頭：櫃台、餅乾櫃、麵包架 ----------
+
+  const CAMERAS = { counter: 'play', cookie: 'shelf-cookie', bread: 'shelf-bread' };
+  function setView(view) {
+    game.dataset.view = view;
+    shop.dataset.camera = CAMERAS[view];
+  }
+
   // ---------- 顧客 ----------
 
-  // 顧客放在自己的一層，疊在店裡所有東西上面（顧客站在櫃台前面，不會被店裡的東西擋到）
+  // 顧客和走出櫃台的小栗放在自己的一層，疊在店裡所有東西上面
   shop.insertAdjacentHTML('beforeend', '<div class="shop__room shop__room--customers" aria-hidden="true"></div>');
   const crowd = shop.lastElementChild;
 
@@ -138,14 +155,72 @@
     el.dataset.walking = 'false';
   }
 
-  function setClerk(expression) {
-    if (clerk) clerk.dataset.expression = expression;
+  // ---------- 小栗 ----------
+
+  let clerkAt = { ...HOME };
+  async function clerkTo(point) {
+    const distance = Math.hypot(point.x - clerkAt.x, point.z - clerkAt.z);
+    clerk.style.setProperty('--move-ms', `${Math.round(distance / CLERK_SPEED)}ms`);
+    clerk.dataset.walking = 'true';
+    moveTo(clerk, point);
+    clerkAt = { ...point };
+    await wait(durationOf(clerk));
+    clerk.dataset.walking = 'false';
   }
 
-  // ---------- 題目卡 ----------
+  function resetClerk() {
+    clerk.classList.remove('is-moving');
+    fixtures.append(clerk);
+    clerk.style.removeProperty('--move-ms');
+    moveTo(clerk, HOME);
+    clerkAt = { ...HOME };
+    clerk.dataset.walking = 'false';
+    clerk.dataset.expression = 'normal';
+    clerk.querySelector('.clerk-letter')?.remove();
+  }
 
-  let run = 0; // 每次開新的一局（或回到店門口）就換號碼，還在等的舊流程醒來就停
-  let current = null; // 目前這一題：{ q, choose(letter, button) }
+  // 走去拿一個字母商品再回到櫃台後面；回傳時小栗已經站回原位
+  let busy = false;
+  async function fetchLetter(letter, id) {
+    busy = true;
+    const item = Lab.letters.find(letter);
+    const lane = LANES[item.area];
+    const pick = { x: lane.pickX, z: Math.max(-1060, Math.min(-200, item.z)) };
+    clerk.classList.add('is-moving');
+
+    await clerkTo(lane.corner);
+    await clerkTo(lane.front);
+    crowd.append(clerk); // 走出櫃台：換到顧客那一層
+    await clerkTo(pick);
+    if (id !== run) return;
+
+    // 拿起來：商品跳一下，字母浮在小栗頭上帶回去
+    item.el.classList.remove('is-picked');
+    void item.el.offsetWidth;
+    item.el.classList.add('is-picked');
+    clerk.insertAdjacentHTML('beforeend', `<span class="clerk-letter" aria-hidden="true">${letter}</span>`);
+    await pausableWait(tokenMs('--play-pick-duration'));
+    if (id !== run) return;
+
+    setView('counter');
+    await clerkTo(lane.front);
+    fixtures.append(clerk); // 回到櫃台旁邊：換回擺設那一層
+    await clerkTo(lane.corner);
+    await clerkTo(HOME);
+    clerk.querySelector('.clerk-letter')?.remove();
+    clerk.classList.remove('is-moving');
+    busy = false;
+  }
+
+  // ---------- 題目 ----------
+
+  function makeQuestion(word) {
+    const letters = [...word.en];
+    const blanks = shuffle(letters.map((_, i) => i).slice(1))
+      .slice(0, blanksFor(letters.length))
+      .sort((a, b) => a - b);
+    return { ...word, letters, blanks, cursor: 0 };
+  }
 
   function renderQuestion(q, finished) {
     quizWord.innerHTML = q.letters
@@ -154,63 +229,63 @@
         if (blankIndex === -1) return `<span class="quiz__slot">${letter}</span>`;
         const done = blankIndex < q.cursor;
         const cls = done ? 'is-filled' : finished ? 'is-revealed' : blankIndex === q.cursor ? 'is-current' : '';
-        const shown = done || finished ? letter : '';
-        return `<span class="quiz__slot quiz__slot--blank ${cls}">${shown}</span>`;
+        return `<span class="quiz__slot quiz__slot--blank ${cls}">${done || finished ? letter : ''}</span>`;
       })
       .join('');
-    // 讀螢幕的軟體：缺字的地方唸成「空格」
     quizWord.setAttribute(
       'aria-label',
       q.letters.map((letter, i) => (q.blanks.indexOf(i) >= q.cursor && !finished ? '空格' : letter)).join(' ')
     );
-
-    if (finished) {
-      quizChoices.innerHTML = '';
-      return;
-    }
-    const answer = q.letters[q.blanks[q.cursor]];
-    quizChoices.innerHTML = choicesFor(answer)
-      .map((c) => `<button type="button" class="quiz__choice" data-letter="${c}" aria-label="字母 ${c}">${c}</button>`)
-      .join('');
   }
 
-  // 出一題，等玩家答完或時間到；答對回傳 true
+  let run = 0;
+  let current = null; // 目前這一題：{ q, pick(letter) }
+
+  function setClock(seconds, hurry) {
+    const s = Math.max(0, Math.ceil(seconds));
+    clockTime.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    clock.dataset.hurry = String(hurry);
+  }
+
+  // 出一題，等字母補齊或時間到；答對回傳 true
   function ask(word, who, customer, id) {
     return new Promise((resolve) => {
       const q = makeQuestion(word);
       const total = (TIME_BASE + TIME_PER_BLANK * q.blanks.length) * 1000;
-      const started = performance.now();
+      let elapsed = 0;
+      let last = performance.now();
       let frame = 0;
       let frownTimer = 0;
 
       quiz.removeAttribute('data-state');
-      quiz.dataset.hurry = 'false';
-      quiz.style.setProperty('--time-left', 1);
       quizWho.textContent = `${Lab.characters.names[who]}想要：`;
       quizHint.textContent = q.zh;
-      quizMessage.textContent = '';
+      quizMessage.textContent = '按「餅乾櫃」或「麵包架」，去找缺的字母。';
       renderQuestion(q, false);
       quiz.hidden = false;
-      quizChoices.querySelector('button')?.focus({ preventScroll: true });
+      setClock(total / 1000, false);
+      $('[data-go="cookie"]').focus({ preventScroll: true });
 
       const finish = (ok) => {
         cancelAnimationFrame(frame);
         clearTimeout(frownTimer);
         current = null;
-        q.cursor = ok ? q.blanks.length : q.cursor;
+        if (ok) q.cursor = q.blanks.length;
         quiz.dataset.state = ok ? 'correct' : 'timeout';
         renderQuestion(q, true);
         quizMessage.textContent = ok ? `答對了！${q.en}，${q.zh}。` : `時間到！答案是 ${q.en}（${q.zh}）。`;
+        clock.dataset.hurry = 'false';
         speak(q.en);
         resolve(ok);
       };
 
-      const tick = () => {
+      const tick = (now) => {
         if (id !== run) return;
-        const left = Math.max(0, 1 - (performance.now() - started) / total);
-        quiz.style.setProperty('--time-left', left);
+        if (!paused) elapsed += now - last;
+        last = now;
+        const left = Math.max(0, 1 - elapsed / total);
         const hurry = left < HURRY;
-        quiz.dataset.hurry = String(hurry);
+        setClock((total - elapsed) / 1000, hurry);
         if (hurry) customer.dataset.expression = 'flustered';
         if (left <= 0) {
           finish(false);
@@ -222,45 +297,68 @@
 
       current = {
         q,
-        choose(letter, button) {
+        async pick(letter) {
+          if (busy || paused) return;
+          const item = Lab.letters.find(letter);
+          if (!item) return;
           const answer = q.letters[q.blanks[q.cursor]];
-          if (letter === answer) {
-            q.cursor++;
-            if (q.cursor === q.blanks.length) {
-              finish(true);
-              return;
-            }
-            renderQuestion(q, false);
-            quizChoices.querySelector('button')?.focus({ preventScroll: true });
+          if (letter !== answer) {
+            // 點錯：商品搖一下、顧客皺眉，不扣時間
+            item.el.classList.remove('is-wrong');
+            void item.el.offsetWidth;
+            item.el.classList.add('is-wrong');
+            quizMessage.textContent = `這是 ${letter}，不是缺的那個字母喔。`;
+            customer.dataset.expression = 'flustered';
+            clearTimeout(frownTimer);
+            frownTimer = setTimeout(() => {
+              if (clock.dataset.hurry !== 'true') customer.dataset.expression = 'normal';
+            }, tokenMs('--play-frown-duration'));
             return;
           }
-          // 選錯：按鈕搖一下、顧客皺一下眉，不扣時間
-          if (button) {
-            button.classList.remove('is-wrong');
-            void button.offsetWidth;
-            button.classList.add('is-wrong');
+          quizMessage.textContent = `對！小栗去拿 ${letter} 了。`;
+          await fetchLetter(letter, id);
+          if (id !== run || current?.q !== q) return; // 已經時間到或換下一位了
+          q.cursor++;
+          if (q.cursor === q.blanks.length) {
+            finish(true);
+            return;
           }
-          quizMessage.textContent = `不是 ${letter}，再試試看。`;
-          customer.dataset.expression = 'flustered';
-          clearTimeout(frownTimer);
-          frownTimer = setTimeout(() => {
-            if (quiz.dataset.hurry !== 'true') customer.dataset.expression = 'normal';
-          }, tokenMs('--play-frown-duration'));
+          renderQuestion(q, false);
+          quizMessage.textContent = '再找下一個缺的字母。';
         },
       };
     });
   }
 
-  quizChoices.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-letter]');
-    if (button && current) current.choose(button.dataset.letter, button);
+  // 點商品（滑鼠、手指，或鍵盤在商品上按 Enter）
+  shop.addEventListener('click', (event) => {
+    const item = event.target.closest('.letter-item');
+    if (item && current) current.pick(item.dataset.letter);
+  });
+  shop.addEventListener('keydown', (event) => {
+    const item = event.target.closest('.letter-item');
+    if (item && current && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      current.pick(item.dataset.letter);
+    }
   });
 
-  // 電腦：直接按鍵盤的字母也能作答
+  // 電腦：直接按鍵盤字母＝點那個商品；Esc 開關設定
   document.addEventListener('keydown', (event) => {
-    if (!current || event.metaKey || event.ctrlKey || event.altKey || !/^[a-z]$/i.test(event.key)) return;
-    const letter = event.key.toLowerCase();
-    current.choose(letter, quizChoices.querySelector(`[data-letter="${letter}"]`));
+    if (game.dataset.phase !== 'open') return;
+    if (event.key === 'Escape') {
+      paused ? resume() : openPause();
+      return;
+    }
+    if (!current || paused || event.metaKey || event.ctrlKey || event.altKey || !/^[a-z]$/i.test(event.key)) return;
+    if (event.target.closest('input, textarea')) return;
+    current.pick(event.key.toLowerCase());
+  });
+
+  // 題目卡上的按鈕：去餅乾櫃、去麵包架、回到櫃台
+  quiz.addEventListener('click', (event) => {
+    const go = event.target.closest('[data-go]');
+    if (go && !paused) setView(go.dataset.go);
   });
 
   quizSpeak.hidden = !canSpeak;
@@ -271,29 +369,30 @@
   async function serve(word, id) {
     const who = nextAnimal();
     const customer = spawn(who);
-    await nextFrame(); // 先在入口站定（透明），下一格再淡入、開始走，transition 才有起點
+    await nextFrame();
     customer.dataset.presence = 'in';
     await walk(customer, SPOT);
+    await gate();
     if (id !== run) return false;
 
-    // 頭上的泡泡寫中文提示，提醒這位要的是什麼
     customer.insertAdjacentHTML('beforeend', `<div class="bubble bubble--hint"><span class="bubble__hint">${word.zh}</span></div>`);
     const ok = await ask(word, who, customer, id);
     if (id !== run) return false;
 
+    setView('counter');
     customer.dataset.bubble = 'none';
     customer.dataset.expression = ok ? 'happy' : 'flustered';
     if (ok) customer.dataset.carry = 'bag';
-    setClerk(ok ? 'happy' : 'flustered');
-    await wait(tokenMs('--play-react-duration'));
+    clerk.dataset.expression = ok ? 'happy' : 'flustered';
+    await pausableWait(tokenMs('--play-react-duration'));
     if (id !== run) return false;
 
     quiz.hidden = true;
     await walk(customer, ENTRANCE);
     customer.dataset.presence = 'out';
-    await wait(tokenMs('--play-fade-duration'));
+    await pausableWait(tokenMs('--play-fade-duration'));
     customer.remove();
-    setClerk('normal');
+    clerk.dataset.expression = 'normal';
     return ok;
   }
 
@@ -303,15 +402,31 @@
     status.textContent = `第 ${Math.min(served + 1, ROUND)}／${ROUND} 位・答對 ${correct} 題`;
   }
 
+  async function runCountdown(id) {
+    countdown.hidden = false;
+    for (const text of ['3', '2', '1', '開始！']) {
+      if (id !== run) return;
+      countdown.textContent = text;
+      countdown.classList.remove('is-tick');
+      void countdown.offsetWidth;
+      countdown.classList.add('is-tick');
+      await wait(tokenMs('--countdown-step'));
+    }
+    countdown.hidden = true;
+  }
+
   async function start() {
     const id = ++run;
     clearStage();
-    shop.dataset.camera = 'play';
+    setView('counter');
     const words = shuffle(Lab.words).slice(0, ROUND);
     const results = [];
     updateStatus(0, 0);
     status.hidden = false;
+    hud.hidden = false;
+    setClock(TIME_BASE, false);
     await wait(durationOf(shop));
+    await runCountdown(id);
 
     for (const word of words) {
       if (id !== run) return;
@@ -325,8 +440,7 @@
 
   // ---------- 成績 ----------
 
-  // [需確認] 13 題以上三顆星、9 題以上兩顆、至少答對 1 題一顆
-  const starsFor = (correct) => (correct >= 13 ? 3 : correct >= 9 ? 2 : correct >= 1 ? 1 : 0);
+  const SPEAKER = quizSpeak.innerHTML;
 
   function showResult(results) {
     const correct = results.filter((r) => r.ok).length;
@@ -345,33 +459,73 @@
       )
       .join('');
     status.textContent = `營業結束・答對 ${correct}／${ROUND} 題`;
+    hud.hidden = true;
     result.hidden = false;
     result.querySelector('[data-play-again]').focus({ preventScroll: true });
   }
-
-  const SPEAKER = quizSpeak.innerHTML; // 成績頁每個單字旁的 🔊 跟題目卡用同一個圖示
 
   resultList.addEventListener('click', (event) => {
     const button = event.target.closest('[data-say]');
     if (button) speak(button.dataset.say);
   });
-
   result.querySelector('[data-play-again]').addEventListener('click', start);
+
+  // ---------- 設定選單：繼續、重新開始、遊戲說明、回到主畫面 ----------
+
+  function openPause() {
+    if (paused || game.dataset.phase !== 'open' || !result.hidden) return;
+    paused = true;
+    game.dataset.paused = 'true';
+    pauseMenu.hidden = false;
+    if (canSpeak) speechSynthesis.cancel();
+    pauseMenu.querySelector('[data-pause-resume]').focus({ preventScroll: true });
+  }
+
+  function resume() {
+    if (!paused) return;
+    paused = false;
+    delete game.dataset.paused;
+    pauseMenu.hidden = true;
+    Lab.book?.close();
+    const waiters = resumeWaiters;
+    resumeWaiters = [];
+    waiters.forEach((resolve) => resolve());
+  }
+
+  $('[data-pause-open]').addEventListener('click', openPause);
+  pauseMenu.querySelector('[data-pause-resume]').addEventListener('click', resume);
+  pauseMenu.querySelector('[data-pause-restart]').addEventListener('click', () => {
+    resume();
+    start();
+  });
+  // 遊戲說明：打開說明書，看完按「回到遊戲」回到設定選單
+  pauseMenu.querySelector('[data-pause-howto]').addEventListener('click', () => {
+    pauseMenu.hidden = true;
+    Lab.book.open('resume', () => {
+      pauseMenu.hidden = false;
+      pauseMenu.querySelector('[data-pause-resume]').focus({ preventScroll: true });
+    });
+  });
 
   // ---------- 開始與重來 ----------
 
   function clearStage() {
     current = null;
+    busy = false;
     quiz.hidden = true;
     result.hidden = true;
-    crowd.innerHTML = '';
-    setClerk('normal');
+    countdown.hidden = true;
+    crowd.querySelectorAll('.game__customer').forEach((el) => el.remove());
+    resetClerk();
     if (canSpeak) speechSynthesis.cancel();
   }
 
   game.addEventListener('game:open', start);
   game.addEventListener('game:reset', () => {
     run++;
+    if (paused) resume();
     clearStage();
+    hud.hidden = true;
+    delete game.dataset.view;
   });
 })();

@@ -1,12 +1,12 @@
 /*
-  小遊戲的開場：店門口 → 推門進店 → 導覽三站 → 開始營業。
+  小遊戲的開場：店門口 → 推門進店 → 導覽三站（字母放在哪裡）→ 遊戲說明書 → 開始營業。
 
   為什麼需要 JS：開場是照順序發生的一連串事情（門打開、鏡頭走進店、導覽一站一站換），
   每一步要等上一步的動畫走完，也要接住玩家按的「下一站」「略過導覽」。
   這支只決定「什麼時候換下一步」：門怎麼轉、鏡頭怎麼走，都是改 data 屬性之後由 CSS 的 transition 做。
 
   狀態都寫在 data 屬性上：
-    .game[data-phase]   street 店外／entering 推門進店／tour 導覽／ready 準備開店／open 營業中
+    .game[data-phase]   street 店外／entering 推門進店／tour 導覽／book 看說明書／open 營業中
     .shop[data-camera]  鏡頭：street（店外）＋烘焙店頁的 door／cases／bread／counter
     .shop[data-door]    closed／open
   遊戲本體（scripts/play.js）從 open 接手：開始營業時在 .game 上發出 game:open，回到店門口時發出 game:reset。
@@ -38,11 +38,10 @@
 
   const STREET = { title: '歡迎光臨', text: '點一下店門，走進日日餅乾。' };
   const TOUR = [
-    { camera: 'cases', title: '餅乾展示櫃', text: '左邊兩座展示櫃放餅乾：巧克力豆、果醬夾心、棋盤、糖霜愛心。' },
-    { camera: 'bread', title: '麵包架', text: '右邊的層架放麵包：餐包、可頌、吐司、肉桂捲。' },
-    { camera: 'counter', title: '櫃台', text: '小栗站在櫃台後面。顧客走到櫃台前會出一個英文單字，把缺的字母補上，就完成這筆訂單。' },
+    { camera: 'cases', title: '字母餅乾 a–m', text: '左邊兩座展示櫃頂上立著字母餅乾，a 到 m 照字母順序從左排到右。' },
+    { camera: 'bread', title: '字母麵包 n–z', text: '右邊麵包架上的麵包寫著 n 到 z，一樣照順序，從上排到下。' },
+    { camera: 'counter', title: '櫃台', text: '顧客會走到櫃台前出題。找到缺的字母，點那個餅乾或麵包，小栗就會去拿回來。' },
   ];
-  const READY = { title: '準備好了嗎？', text: '今天會有 15 位顧客上門，在時間內拼出他們要的單字，讓他們開心回家！', next: '開始營業' };
 
   // ---------- 小工具 ----------
 
@@ -117,12 +116,13 @@
     onNext = last ? ready : () => tour(index + 1);
   }
 
+  // 導覽結束（或略過）：打開遊戲說明書，最後一頁按「開始遊戲」才開始營業（scripts/book.js）
   function ready() {
-    setPhase('ready');
-    shop.dataset.camera = 'door';
-    showCard(READY);
-    onNext = open;
-    nextButton.focus();
+    setPhase('book');
+    shop.dataset.camera = 'counter';
+    card.hidden = true;
+    onNext = null;
+    window.Lab.book.open('start');
   }
 
   function open() {
@@ -144,11 +144,13 @@
     delete shop.dataset.instant;
     status.hidden = true;
     onNext = null;
+    window.Lab.book?.close();
     game.dispatchEvent(new CustomEvent('game:reset'));
     atStreet();
   }
 
   door.addEventListener('click', enter);
+  game.addEventListener('game:book-start', open);
   nextButton.addEventListener('click', () => onNext?.());
   skipButton.addEventListener('click', ready);
   // 舞台下方和成績頁各有一顆「回到店門口」

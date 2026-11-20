@@ -45,6 +45,24 @@
   --cam-yaw: 0deg;
 }
 
+/*
+  營業中去找字母：轉身正對貨架。餅乾櫃往左看（兩座展示櫃頂上的 a–m 都在畫面裡），
+  麵包架往右看（n–z 在上面三層）。[需確認]
+*/
+.shop[data-camera='shelf-cookie'] {
+  --cam-x: 820;
+  --cam-y: 320;
+  --cam-z: -650;
+  --cam-yaw: -90deg;
+}
+
+.shop[data-camera='shelf-bread'] {
+  --cam-x: 420;
+  --cam-y: 330;
+  --cam-z: -650;
+  --cam-yaw: 90deg;
+}
+
 /* 從店外走進門口：路比較長，換一個比較久的時間 */
 .shop[data-walk='enter'] {
   --shop-cam-duration: var(--game-walk-duration);
@@ -204,6 +222,16 @@
     --cam-x: 560;
     --cam-y: 420;
     --cam-pitch: 30deg;
+  }
+
+  /* 手機版看貨架：站近一點，字母才夠大；餅乾櫃剛好放得下 a 到 m */
+  .shop[data-camera='shelf-cookie'] {
+    --cam-x: 674;
+    --cam-z: -628;
+  }
+
+  .shop[data-camera='shelf-bread'] {
+    --cam-x: 750;
   }
 }
 

@@ -1,0 +1,183 @@
+/*
+  遊戲說明書（scripts/book.js）：像一本攤開的小書。
+    .book__cover  木頭色的書皮
+    .book__paper  紙頁，往內一點有一圈虛線當縫線；桌面版是左右兩頁的跨頁（左邊截圖、右邊說明，中間有書背的陰影）
+    .book__page   一頁的內容，翻頁時繞著書背轉一下（.book[data-turn]）
+*/
+
+.book {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-2);
+  background: var(--book-backdrop);
+}
+
+.book[hidden] {
+  display: none;
+}
+
+.book__cover {
+  width: min(var(--book-width), 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: var(--book-cover-edge);
+  border-radius: var(--radius);
+  background: var(--book-cover);
+  box-shadow: var(--card-shadow);
+}
+
+/* 紙頁：縫線是一圈往內縮的虛線外框 */
+.book__paper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: calc(var(--radius) / 2);
+  background: var(--book-paper);
+  color: var(--card-ink);
+  outline: var(--book-stitch-width) dashed var(--book-stitch);
+  outline-offset: calc(var(--book-stitch-inset) * -1);
+}
+
+.book__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+}
+
+.book__title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  outline: none;
+}
+
+.book__skip {
+  padding: calc(var(--sp-1) / 2) var(--sp-1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--card-muted);
+  font: inherit;
+  font-size: var(--font-size-meta);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+
+.book__skip:hover {
+  color: var(--card-ink);
+}
+
+.book__page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* 截圖的原始寬度很大，不能讓它把頁面撐開 */
+  gap: var(--sp-1);
+  transform-origin: 0 50%;
+}
+
+.book__page[hidden] {
+  display: none;
+}
+
+.book__shot {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--card-line);
+  border-radius: calc(var(--radius) / 2);
+  background: var(--card-line);
+}
+
+.book__heading {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.book__text {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.book__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+}
+
+.book__nav [hidden] {
+  display: none;
+}
+
+.book__nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.book__count {
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 翻頁：新的一頁從書背那一側轉進來 */
+.book[data-turn='forward'] .book__page:not([hidden]) {
+  animation: book-turn-forward var(--book-flip-duration) var(--motion-ease);
+}
+
+.book[data-turn='back'] .book__page:not([hidden]) {
+  animation: book-turn-back var(--book-flip-duration) var(--motion-ease);
+}
+
+@keyframes book-turn-forward {
+  from {
+    opacity: 0;
+    transform: perspective(var(--book-flip-perspective)) rotateY(-35deg);
+  }
+}
+
+@keyframes book-turn-back {
+  from {
+    opacity: 0;
+    transform: perspective(var(--book-flip-perspective)) rotateY(35deg);
+  }
+}
+
+/* 桌面版：攤開的跨頁，左頁截圖、右頁說明，中間一道書背的陰影 */
+@media (min-width: 768px) {
+  .book__page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--sp-5);
+    row-gap: var(--sp-1);
+    align-items: start;
+  }
+
+  .book__shot {
+    grid-row: 1 / span 2;
+  }
+
+  .book__paper {
+    background:
+      linear-gradient(
+        90deg,
+        transparent calc(50% - var(--sp-3)),
+        var(--book-spine) 50%,
+        transparent calc(50% + var(--sp-3))
+      ),
+      var(--book-paper);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book[data-turn] .book__page:not([hidden]) {
+    animation: none;
+  }
+}
