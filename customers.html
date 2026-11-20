@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜顧客</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/characters.css" />
+    <link rel="stylesheet" href="styles/order.css" />
+    <!--
+      順序有關係：props.js 準備商品與圖示 → characters.js 長出三位顧客 →
+      order.js 在顧客頭上放泡泡、接好訂單卡 → rotate.js、controls.js 接手互動
+    -->
+    <script src="scripts/props.js" defer></script>
+    <script src="scripts/characters.js" defer></script>
+    <script src="scripts/order.js" defer></script>
+    <script src="scripts/rotate.js" defer></script>
+    <script src="scripts/controls.js" defer></script>
+  </head>
+  <body>
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html">01 紙盒</a>
+          <a href="display-case.html">02 展示櫃</a>
+          <a href="hedgehog.html">03 小栗</a>
+          <a href="bakery.html">04 烘焙店</a>
+          <a href="customers.html" aria-current="page">05 顧客</a>
+        </nav>
+        <h1 class="lab__title">顧客</h1>
+        <p class="lab__lead">
+          小遊戲裡輪流上門的三位顧客：兔子、小熊、狐狸。跟小栗一樣是 6 層的分層紙偶，畫在同一個畫板上，
+          走路、表情、影子全部共用。頭上的對話泡泡寫著要買的東西，收合成「…」之後點一下，就會打開訂單卡。
+        </p>
+      </header>
+
+      <section class="lab__demo" data-rotate-root>
+        <div class="order-host">
+          <div
+            class="scene scene--character scene--customers"
+            data-rotate-stage
+            tabindex="0"
+            role="group"
+            aria-roledescription="3D 模型"
+            aria-label="顧客 3D 模型"
+            aria-describedby="cu-hint"
+          >
+            <!-- 三位疊在同一個位置，由「顧客」按鈕切換顯示哪一位；data-order 是泡泡裡的訂單（示範用） -->
+            <div id="customers" class="customers" data-rotate-target data-customer="rabbit">
+              <div class="character" data-character="rabbit" data-expression="normal" data-walking="false" data-carry="none" data-bubble="order" data-order="chip:2,croissant:1"></div>
+              <div class="character" data-character="bear" data-expression="normal" data-walking="false" data-carry="none" data-bubble="order" data-order="toast:1,roll:3,jam:1"></div>
+              <div class="character" data-character="fox" data-expression="normal" data-walking="false" data-carry="none" data-bubble="order" data-order="heart:1,checker:2,cinnamon:1,chip:1,toast:1"></div>
+            </div>
+          </div>
+          <!-- 訂單卡不放在舞台裡：在卡片上按下去才不會變成拖曳旋轉 -->
+          <div class="order-card" data-order-card hidden></div>
+        </div>
+
+        <div class="lab__controls">
+          <div class="lab__control" role="group" aria-label="顧客" data-control="customer" data-control-target="#customers">
+            <span class="lab__control-label" aria-hidden="true">顧客</span>
+            <button type="button" data-value="rabbit" aria-pressed="true">兔子</button>
+            <button type="button" data-value="bear" aria-pressed="false">小熊</button>
+            <button type="button" data-value="fox" aria-pressed="false">狐狸</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="表情" data-control="expression" data-control-target="#customers .character">
+            <span class="lab__control-label" aria-hidden="true">表情</span>
+            <button type="button" data-value="normal" aria-pressed="true">平常</button>
+            <button type="button" data-value="happy" aria-pressed="false">開心</button>
+            <button type="button" data-value="flustered" aria-pressed="false">著急</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="動作" data-control="walking" data-control-target="#customers .character">
+            <span class="lab__control-label" aria-hidden="true">動作</span>
+            <button type="button" data-value="false" aria-pressed="true">站著</button>
+            <button type="button" data-value="true" aria-pressed="false">走路</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="手上拿的" data-control="carry" data-control-target="#customers .character">
+            <span class="lab__control-label" aria-hidden="true">手上</span>
+            <button type="button" data-value="none" aria-pressed="true">空手</button>
+            <button type="button" data-value="bag" aria-pressed="false">紙袋</button>
+          </div>
+          <div class="lab__control" role="group" aria-label="對話泡泡" data-control="bubble" data-control-target="#customers .character">
+            <span class="lab__control-label" aria-hidden="true">泡泡</span>
+            <button type="button" data-value="order" aria-pressed="true">訂單</button>
+            <button type="button" data-value="dots" aria-pressed="false">收合「…」</button>
+            <button type="button" data-value="none" aria-pressed="false">不顯示</button>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p id="cu-hint">點泡泡打開訂單卡・拖曳旋轉・方向鍵每次 10°・按 0 或雙擊回到預設角度</p>
+          <p class="lab__readout">X <output data-readout-x>−8°</output>　Y <output data-readout-y>25°</output></p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>做法重點</h2>
+        <table>
+          <thead>
+            <tr><th>部位</th><th>做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>分層</td><td>跟小栗同一套：背面 −30、身體 −14、頭 0、頭飾 +4、五官 +6、手 +18。兔子的長耳朵、狐狸的尾巴都放在最後面那層</td></tr>
+            <tr><td>剪影</td><td>三位一眼就要分得出來：兔子是長耳朵，小熊是圓耳朵和寬身體，狐狸是尖耳朵和側面露出的大尾巴</td></tr>
+            <tr><td>表情與紙袋</td><td>三位共用同一組五官（平常／開心／著急）和手（空手／結帳後的紙袋），只有位置與顏色不同</td></tr>
+            <tr><td>對話泡泡</td><td>頭上 Depth +30 的一片平面，跟著顧客一起轉；背面不顯示。一排最多 3 樣商品，多了就換行</td></tr>
+            <tr><td>訂單卡</td><td>一般的平面介面，字比泡泡大。點泡泡打開，按 × 或 Esc 關閉，焦點會回到泡泡</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

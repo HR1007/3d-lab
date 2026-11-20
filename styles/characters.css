@@ -10,7 +10,7 @@
   狀態全部用 data 屬性切換，遊戲那一頁直接改屬性就好：
     data-expression  normal（平常）／happy（開心）／flustered（慌張、著急）
     data-walking     true 時走路
-    data-carry       手上拿的東西，每個角色各有幾種（小栗：basket／baguette）
+    data-carry       手上拿的東西（小栗：basket／baguette；顧客：none 空手／bag 結帳後的紙袋）
 
   尺寸以 --chu（角色的「Figma 1px」）為單位，放進不同場景時在容器上覆寫 --chu 即可。
   圖層的 SVG 由 scripts/characters.js 產生。
@@ -79,7 +79,9 @@
   display: none;
 }
 .character[data-carry='basket'] [data-carry-item='basket'],
-.character[data-carry='baguette'] [data-carry-item='baguette'] {
+.character[data-carry='baguette'] [data-carry-item='baguette'],
+.character[data-carry='none'] [data-carry-item='none'],
+.character[data-carry='bag'] [data-carry-item='bag'] {
   display: inline;
 }
 
@@ -142,4 +144,48 @@
   place-items: center;
   perspective: var(--ch-perspective);
   background: linear-gradient(var(--ch-stage-top), var(--ch-stage-bottom));
+}
+
+/* ---------- 顧客展示頁：三位疊在同一個位置，一次顯示一位 ---------- */
+
+/* 頭上還有對話泡泡，舞台比小栗頁高，角色往下挪讓出泡泡的位置 */
+.scene--customers {
+  height: var(--cu-stage-height);
+}
+
+.customers {
+  --tilt-x: var(--ch-tilt-x);
+  --tilt-y: var(--ch-tilt-y);
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+  position: relative;
+  width: calc(var(--chu) * 200);
+  height: calc(var(--chu) * 260);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  translate: 0 var(--cu-offset-y);
+}
+
+.customers.is-settling {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+/* 整組一起轉，裡面的角色自己不再轉一次 */
+.customers > .character {
+  position: absolute;
+  inset: 0;
+  display: none;
+  transform: none;
+}
+
+.customers[data-customer='rabbit'] > [data-character='rabbit'],
+.customers[data-customer='bear'] > [data-character='bear'],
+.customers[data-customer='fox'] > [data-character='fox'] {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customers.is-settling {
+    transition: none;
+  }
 }

@@ -1,0 +1,238 @@
+/*
+  對話泡泡與訂單卡。
+    .bubble      顧客頭上的泡泡。3D 場景裡的一片平面，尺寸用 --chu（跟角色一起縮放）。
+                 角色的 data-bubble 決定外觀：order 顯示整張訂單、dots 收合成「…」、none 不顯示
+    .order-card  點泡泡打開的訂單卡。一般的平面介面，蓋在舞台上，字比泡泡大、看得清楚
+  HTML 由 scripts/order.js 產生。
+*/
+
+/* ---------- 泡泡 ---------- */
+
+.bubble {
+  position: absolute;
+  /* left / right 都是 0、寬度照內容、左右 margin auto：不用 translate 就能水平置中 */
+  left: 0;
+  right: 0;
+  bottom: calc(100% + var(--chu) * 14);
+  width: max-content;
+  max-width: calc(var(--chu) * 260); /* 一排最多放 3 樣，超過就換行 */
+  margin: 0 auto;
+  padding: calc(var(--chu) * 10) calc(var(--chu) * 14);
+  border: calc(var(--chu) * 2) solid var(--bubble-line);
+  border-radius: calc(var(--chu) * 22);
+  background: var(--bubble-bg);
+  color: var(--bubble-ink);
+  font: inherit;
+  cursor: pointer;
+  /* 浮在臉的前面一點（最前面的手是 +18）；背面不顯示，轉到後面才不會看到反過來的字 */
+  transform: translateZ(calc(var(--chu) * 30));
+  backface-visibility: hidden;
+  transition: scale var(--motion-fast) var(--motion-ease);
+}
+
+.bubble:hover {
+  scale: 1.05;
+}
+
+.bubble:focus-visible {
+  outline: calc(var(--chu) * 3) solid var(--bubble-ink);
+  outline-offset: calc(var(--chu) * 3);
+}
+
+/* 尾巴：轉 45° 的小方塊，只留右、下兩邊的框線，指向顧客的頭 */
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--chu) * -9);
+  width: calc(var(--chu) * 16);
+  height: calc(var(--chu) * 16);
+  border-right: inherit;
+  border-bottom: inherit;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.bubble__items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--chu) * 6) calc(var(--chu) * 12);
+}
+
+.bubble__item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--chu) * 3);
+}
+
+.bubble__item svg {
+  display: block;
+  width: calc(var(--chu) * 40);
+  height: calc(var(--chu) * 40);
+}
+
+.bubble__qty {
+  font-size: calc(var(--chu) * 18);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 收合後的「…」：三個點輪流跳，提示這裡可以點 */
+.bubble__dots {
+  display: none;
+  gap: calc(var(--chu) * 6);
+  padding: calc(var(--chu) * 6) calc(var(--chu) * 4);
+}
+
+.bubble__dots span {
+  width: calc(var(--chu) * 9);
+  height: calc(var(--chu) * 9);
+  border-radius: 50%;
+  background: var(--bubble-dot);
+  animation: bubble-dot var(--bubble-pulse-duration) ease-in-out infinite;
+}
+
+.bubble__dots span:nth-child(2) {
+  animation-delay: calc(var(--bubble-pulse-duration) / 6);
+}
+
+.bubble__dots span:nth-child(3) {
+  animation-delay: calc(var(--bubble-pulse-duration) / 3);
+}
+
+@keyframes bubble-dot {
+  0%,
+  60%,
+  100% {
+    translate: 0 0;
+    opacity: 0.5;
+  }
+  30% {
+    translate: 0 calc(var(--chu) * -5);
+    opacity: 1;
+  }
+}
+
+.character[data-bubble='dots'] .bubble__items {
+  display: none;
+}
+
+.character[data-bubble='dots'] .bubble__dots {
+  display: flex;
+}
+
+.character[data-bubble='none'] .bubble {
+  display: none;
+}
+
+/* ---------- 訂單卡 ---------- */
+
+/* 訂單卡相對於舞台定位；卡片不放在舞台裡，在卡片上按下去才不會變成拖曳旋轉 */
+.order-host {
+  position: relative;
+}
+
+.order-card {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(var(--order-card-width), calc(100% - var(--sp-2) * 2));
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  outline: none;
+}
+
+.order-card:not([hidden]) {
+  animation: order-card-in var(--motion-fast) var(--motion-ease);
+}
+
+@keyframes order-card-in {
+  from {
+    opacity: 0;
+    translate: 0 calc(var(--sp-1) * -1);
+  }
+}
+
+.order-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+}
+
+.order-card__title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.order-card__close {
+  width: var(--card-button-size);
+  height: var(--card-button-size);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-body);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.order-card__close:hover {
+  background: var(--card-line);
+}
+
+.order-card__close:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+}
+
+.order-card__list {
+  margin: var(--sp-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-card__row {
+  display: grid;
+  grid-template-columns: var(--order-icon-size) 1fr auto;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) 0;
+  border-bottom: 1px dashed var(--card-line);
+}
+
+.order-card__icon svg {
+  display: block;
+  width: var(--order-icon-size);
+  height: var(--order-icon-size);
+}
+
+.order-card__qty {
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.order-card__total {
+  margin: var(--sp-1) 0 0;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    transition: none;
+  }
+  .bubble__dots span,
+  .order-card:not([hidden]) {
+    animation: none;
+  }
+}

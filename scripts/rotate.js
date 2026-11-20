@@ -56,7 +56,11 @@ for (const root of document.querySelectorAll('[data-rotate-root]')) {
     render();
   };
 
+  // 舞台裡的按鈕（例如顧客頭上的對話泡泡）要能點，不能被當成拖曳的起點
+  const isControl = (event) => event.target.closest('button, a, [data-no-drag]');
+
   stage.addEventListener('pointerdown', (event) => {
+    if (isControl(event)) return;
     drag = { x: event.clientX, y: event.clientY, rx, ry };
     stage.setPointerCapture(event.pointerId);
     stage.classList.add('is-dragging');
@@ -77,7 +81,9 @@ for (const root of document.querySelectorAll('[data-rotate-root]')) {
   stage.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
 
-  stage.addEventListener('dblclick', reset);
+  stage.addEventListener('dblclick', (event) => {
+    if (!isControl(event)) reset();
+  });
 
   stage.addEventListener('keydown', (event) => {
     const steps = {

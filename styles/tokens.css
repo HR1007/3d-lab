@@ -146,6 +146,17 @@
   --ch-bob: calc(var(--chu) * -6);
   --ch-step: -4px; /* 這個位移套在 SVG 裡的腳上，單位是 SVG 座標，會跟著 SVG 一起縮放 */
 
+  /* 顧客共用的五官與紙袋 */
+  --ch-eye: #2b1d14;
+  --ch-eye-shine: #ffffff;
+  --ch-ink: #4a2e1f; /* 嘴巴、深色鼻子 */
+  --ch-blush: rgba(244, 163, 163, 0.85);
+  --ch-tongue: #f28b8b;
+  --ch-sweat: #9ad3f5;
+  --bag-kraft: #d8b48a; /* 結帳後提的紙袋 */
+  --bag-kraft-dark: #b98b5e;
+  --bag-logo: var(--case-wood-deep);
+
   /* ---------- 小栗（刺蝟店員）的配色 ---------- */
 
   --hh-spine-dark: #6e4430;
@@ -171,6 +182,59 @@
   --hh-baguette-score: #b9773a;
   --hh-basket: #c8955b;
   --hh-basket-dark: #9e6b3a;
+
+  /* ---------- 三位顧客的配色 [需確認] ---------- */
+
+  /* 兔子：淺灰毛（白毛在暖色舞台上會看不清楚）、薄荷綠開襟衫、粉紅蝴蝶結 */
+  --rabbit-fur: #d8d1ce;
+  --rabbit-fur-shade: #b9afab;
+  --rabbit-ear-inner: #f2b6c4;
+  --rabbit-muzzle: #f8f4f1;
+  --rabbit-nose: #e5879a;
+  --rabbit-cardigan: #8ccbb4;
+  --rabbit-cardigan-dark: #69a993;
+  --rabbit-button: #fff8ee;
+  --rabbit-ribbon: #e8738a;
+  --rabbit-ribbon-dark: #c95670;
+
+  /* 小熊：棕毛、藍色吊帶褲、紅色領巾 */
+  --bear-fur: #b98055;
+  --bear-fur-dark: #8f5c38;
+  --bear-ear-inner: #e0b08a;
+  --bear-muzzle: #f0d7b4;
+  --bear-overalls: #5d8cc0;
+  --bear-overalls-dark: #4672a3;
+  --bear-button: #f2c14e;
+  --bear-scarf: #d9574f;
+
+  /* 狐狸：橘毛、白色臉頰與胸口、深色耳尖與腳、青綠色圍巾 */
+  --fox-fur: #ec8f43;
+  --fox-white: #fff4e6;
+  --fox-ear-inner: #ffd7b0;
+  --fox-dark: #5a3b2e;
+  --fox-scarf: #3f8f8a;
+  --fox-scarf-dark: #2f706c;
+
+  /* ---------- 對話泡泡與訂單卡 ---------- */
+
+  /* 泡泡是 3D 場景裡的平面，尺寸用 --chu；訂單卡是一般介面，用 px */
+  --bubble-bg: #fffdf8;
+  --bubble-line: #e3d3bd;
+  --bubble-ink: #5a3b27;
+  --bubble-dot: #b98b5e;
+  --bubble-pulse-duration: 1200ms;
+  --order-card-width: 280px;
+  --order-icon-size: 36px;
+  --card-paper: #fff8ee;
+  --card-ink: #5a3b27;
+  --card-muted: rgba(90, 59, 39, 0.6);
+  --card-line: rgba(90, 59, 39, 0.25);
+  --card-shadow: 0 12px 32px rgba(58, 42, 30, 0.22);
+  --card-button-size: 32px;
+
+  /* 顧客展示頁：泡泡在頭上，舞台要比小栗頁高，角色往下挪讓出泡泡的位置 */
+  --cu-stage-height: calc(var(--chu) * 480);
+  --cu-offset-y: calc(var(--chu) * 70);
 
   /* ---------- 麵包（Figma「Bread」4 種正面圖） ---------- */
 
