@@ -1,0 +1,168 @@
+/*
+  紙盒。結構跟 Figma 一模一樣：
+    .scene  ＝ 外層加 Perspective 的 frame
+    .box    ＝ 打開「Keep nested layers 3D」的 frame（preserve-3d），整體傾斜
+    .face   ＝ 6 個面，各自的 3D transform
+
+  Figma 的 3D transform 存成「translateZ → rotateX → rotateY → rotateZ」的固定順序，
+  跟 CSS transform 由左到右的寫法完全相同，所以下面每一面的數值都是從 Figma 直接抄過來的。
+  位置（left / top）也照 Figma：側面的中心對齊正面的左右邊，上下蓋的中心對齊上下邊，
+  每一面都以自己的中心旋轉（transform-origin 預設 50% 50%，Figma 也是）。
+*/
+
+.scene {
+  height: var(--stage-height);
+  display: grid;
+  place-items: center;
+  perspective: var(--scene-perspective);
+}
+
+.box {
+  /* --tilt-x/y 是 rotate.js 讀取「預設角度」的通用名稱，每個物件各自指到自己的 token */
+  --tilt-x: var(--box-tilt-x);
+  --tilt-y: var(--box-tilt-y);
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+  position: relative;
+  width: var(--box-w);
+  height: var(--box-h);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+}
+
+/* 只有鍵盤一次轉 10° 時才補間；拖曳時要跟手，不能有延遲 */
+.box.is-settling {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box.is-settling {
+    transition: none;
+  }
+}
+
+.face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--box-ink);
+  overflow: hidden;
+  /* Figma 範例裡也關掉了背面：沒加 Depth 時背面會以鏡像蓋在正面上 */
+  backface-visibility: hidden;
+}
+
+/* 正面：Depth +15（厚度的一半） */
+.face--front {
+  width: var(--box-w);
+  height: var(--box-h);
+  background: var(--box-paper);
+  transform: translateZ(calc(var(--box-d) / 2));
+}
+
+/* 背面：Y 180°、Depth −15 */
+.face--back {
+  width: var(--box-w);
+  height: var(--box-h);
+  background: var(--box-paper);
+  transform: translateZ(calc(var(--box-d) / -2)) rotateY(180deg);
+}
+
+/* 左右側面：Y ∓90°，中心對齊正面左右邊 */
+.face--left,
+.face--right {
+  width: var(--box-d);
+  height: var(--box-h);
+  background: var(--box-side);
+}
+.face--left {
+  left: calc(var(--box-d) / -2);
+  transform: rotateY(-90deg);
+}
+.face--right {
+  left: calc(var(--box-w) - var(--box-d) / 2);
+  transform: rotateY(90deg);
+}
+
+/* 上下蓋：X ±90°，中心對齊正面上下邊 */
+.face--top,
+.face--bottom {
+  width: var(--box-w);
+  height: var(--box-d);
+  background: var(--box-lid);
+}
+.face--top {
+  top: calc(var(--box-d) / -2);
+  transform: rotateX(90deg);
+}
+.face--bottom {
+  top: calc(var(--box-h) - var(--box-d) / 2);
+  transform: rotateX(-90deg);
+}
+
+/* ---------- 盒面圖案：座標與字級都是 Figma 的數字 × --u ---------- */
+
+.label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+  color: var(--box-ink);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.label--name {
+  top: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 15);
+  font-weight: var(--font-weight-black);
+}
+
+.label--latin {
+  top: calc(var(--u) * 37);
+  font-size: calc(var(--u) * 6);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+}
+
+.label--sun {
+  top: calc(var(--u) * 56);
+  left: calc(var(--u) * 22);
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 46);
+  border-radius: 50%;
+  background: var(--box-sun);
+}
+
+.label--title {
+  top: calc(var(--u) * 12);
+  left: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+}
+
+.label--lines {
+  top: calc(var(--u) * 36);
+  left: calc(var(--u) * 10);
+  width: calc(var(--u) * 70);
+  display: grid;
+  gap: calc(var(--u) * 11);
+}
+.label--lines span {
+  height: calc(var(--u) * 2);
+  background: var(--box-line);
+}
+
+/* 包住正面、背面、兩個側面底部的色帶，盒子轉一圈看起來是連續的 */
+.label--band {
+  top: auto;
+  bottom: 0;
+  height: calc(var(--u) * 26);
+  display: grid;
+  place-items: center;
+  background: var(--box-band);
+  color: var(--box-band-ink);
+  font-size: calc(var(--u) * 8);
+  font-weight: var(--font-weight-bold);
+}

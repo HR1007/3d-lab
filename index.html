@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜紙盒</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/box.css" />
+    <!-- 一般 script（不是 module），直接雙擊打開 index.html 也能跑 -->
+    <script src="scripts/rotate.js" defer></script>
+  </head>
+  <body>
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html" aria-current="page">01 紙盒</a>
+          <a href="display-case.html">02 展示櫃</a>
+        </nav>
+        <h1 class="lab__title">紙盒</h1>
+        <p class="lab__lead">
+          從 Figma「3D Transform 範例」搬過來：六個面各自轉到定位，正面 Depth 往前、背面往後推半個厚度。
+          每一面的數值都和 Figma 一模一樣，只是整體放大成兩倍。
+        </p>
+      </header>
+
+      <section class="lab__demo" data-rotate-root>
+        <div
+          class="scene"
+          data-rotate-stage
+          tabindex="0"
+          role="group"
+          aria-roledescription="3D 模型"
+          aria-label="紙盒 3D 模型"
+          aria-describedby="box-hint"
+        >
+          <div class="box" data-rotate-target>
+            <div class="face face--back" aria-hidden="true">
+              <p class="label label--title">營養標示</p>
+              <div class="label label--lines"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="label label--band"></div>
+            </div>
+            <div class="face face--left" aria-hidden="true"><div class="label label--band"></div></div>
+            <div class="face face--right" aria-hidden="true"><div class="label label--band"></div></div>
+            <div class="face face--top" aria-hidden="true"></div>
+            <div class="face face--bottom" aria-hidden="true"></div>
+            <div class="face face--front" aria-hidden="true">
+              <p class="label label--name">晨光燕麥</p>
+              <p class="label label--latin">MORNING OATS</p>
+              <div class="label label--sun"></div>
+              <p class="label label--band">500g</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p id="box-hint">拖曳旋轉・方向鍵每次 10°・按 0 或雙擊回到預設角度</p>
+          <p class="lab__readout">X <output data-readout-x>−20°</output>　Y <output data-readout-y>35°</output></p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>Figma 與 CSS 的對應</h2>
+        <table>
+          <thead>
+            <tr><th>Figma</th><th>CSS</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>3D transform（Depth、X／Y／Z 旋轉）</td><td><code>transform: translateZ() rotateX() rotateY() rotateZ()</code>，順序相同</td></tr>
+            <tr><td>Keep nested layers 3D</td><td><code>transform-style: preserve-3d</code></td></tr>
+            <tr><td>Perspective</td><td><code>perspective</code></td></tr>
+            <tr><td>背面不顯示</td><td><code>backface-visibility: hidden</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

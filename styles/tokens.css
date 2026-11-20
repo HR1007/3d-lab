@@ -1,0 +1,94 @@
+/*
+  3D 實驗室的設計 token。寫法比照作品集的 src/styles/tokens.css：
+  元件裡不寫死色碼或 px（border 的 1px 例外），全部從這裡引用，之後要搬進作品集時
+  只需要把這一段併過去。
+*/
+
+:root {
+  /* 頁面色彩（沿用作品集 light 主題的實測值） */
+  --color-bg: #f2f2f2;
+  --color-surface: #ffffff;
+  --color-ink: #333333;
+  --color-muted: rgba(0, 0, 0, 0.55);
+  --color-border: rgba(51, 51, 51, 0.12);
+
+  --font-sans:
+    'Inter Variable', 'Inter', 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC',
+    ui-sans-serif, system-ui, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  --font-size-h1: 40px;
+  --font-size-body: 17px;
+  --font-size-meta: 13px;
+
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-5: 40px;
+  --sp-7: 80px;
+  --sp-8: 120px;
+
+  --radius: 16px;
+  --content-width: 900px;
+  --focus-ring: 2px;
+
+  --motion-fast: 160ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------- 3D 場景 ---------- */
+
+  /* 舞台高度：要比盒子轉到任何角度時的投影都高，邊緣才不會切到盒子 */
+  --stage-height: 560px;
+
+  /*
+    透視距離。數值取自 Figma「3D Transform 範例 ⑤」的 Perspective 800。
+    跟著 --u 放大：盒子放大兩倍時透視距離也要放大兩倍，變形程度才會跟 Figma 一樣。
+  */
+  --scene-perspective: calc(var(--u) * 800);
+
+  /* 預設傾斜角，取自 Figma「③ ④」的 X −20°、Y 35° */
+  --box-tilt-x: -20deg;
+  --box-tilt-y: 35deg;
+
+  /*
+    盒子的所有尺寸都以「Figma 的 1px」為單位：--u 乘上 Figma 裡量到的數字。
+    Figma 的紙盒是 寬 90 × 高 140 × 厚 30，網頁上放大兩倍；768 以下改 1.5 倍。
+    [需確認] 倍率是暫定值，改 --box-scale 一個值就會整個等比縮放。
+  */
+  --box-scale: 2;
+  --u: calc(1px * var(--box-scale));
+  --box-w: calc(var(--u) * 90);
+  --box-h: calc(var(--u) * 140);
+  --box-d: calc(var(--u) * 30);
+
+  /* 盒子配色：物件本身的顏色，不隨深淺主題反轉（比照作品集的 --chat-* 手機模型） */
+  --box-paper: #ffe8ca;
+  --box-side: #f5d3a8;
+  --box-lid: #f9ddb8;
+  --box-ink: #3a2a1e;
+  --box-sun: #f2994a;
+  --box-band: #e2703a;
+  --box-band-ink: #ffffff;
+  --box-line: #c9a27e;
+}
+
+/* 斷點沿用作品集的三個：375 / 768 / 1200 */
+@media (max-width: 767px) {
+  :root {
+    --box-scale: 1.5;
+    --stage-height: 440px;
+    --font-size-h1: 28px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #18181a;
+    --color-surface: #222225;
+    --color-ink: #f2f2f2;
+    --color-muted: rgba(242, 242, 242, 0.6);
+    --color-border: rgba(242, 242, 242, 0.14);
+  }
+}
