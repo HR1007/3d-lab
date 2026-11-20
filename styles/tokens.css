@@ -125,25 +125,28 @@
   --cookie-icing: #f7a8c4;
   --cookie-icing-dot: #ffffff;
 
-  /* ---------- 小栗（刺蝟店員，Figma「Hedgehog Baker」，200 × 260） ---------- */
+  /* ---------- 角色（小栗與顧客共用，都畫在 Figma「Hedgehog Baker」同樣的 200 × 260 畫板上） ---------- */
 
   /*
-    小栗自己的「Figma 1px」。之後放進烘焙店時角色要小很多，
-    那一頁只要在容器上覆寫 --hu 就好，不用改這裡。[需確認] 1.5 倍／手機 1.1 倍
+    角色的「Figma 1px」。放進烘焙店時角色要小很多，
+    那一頁只要在容器上覆寫 --chu 就好，不用改這裡。[需確認] 1.5 倍／手機 1.1 倍
   */
-  --hh-scale: 1.5;
-  --hu: calc(1px * var(--hh-scale));
-  --hh-stage-height: calc(var(--hu) * 360);
-  --hh-perspective: calc(var(--hu) * 700); /* Figma 小栗展示用的 Perspective 700 */
-  --hh-tilt-x: -8deg; /* 預設稍微側身，一打開就看得出分層 */
-  --hh-tilt-y: 25deg;
-  --hh-stage-top: #fbf6ef; /* 舞台用 Figma 小栗畫板的暖色漸層：白色廚師帽在純白底上會看不見 */
-  --hh-stage-bottom: #eadccb;
+  --ch-scale: 1.5;
+  --chu: calc(1px * var(--ch-scale));
+  --ch-stage-height: calc(var(--chu) * 360);
+  --ch-perspective: calc(var(--chu) * 700); /* Figma 小栗展示用的 Perspective 700 */
+  --ch-tilt-x: -8deg; /* 預設稍微側身，一打開就看得出分層 */
+  --ch-tilt-y: 25deg;
+  --ch-stage-top: #fbf6ef; /* 舞台用 Figma 小栗畫板的暖色漸層：白色廚師帽在純白底上會看不見 */
+  --ch-stage-bottom: #eadccb;
+  --ch-shadow: rgba(0, 0, 0, 0.22);
 
   /* 走路：一步的時間、身體上下晃的高度、腳抬起的高度 */
-  --hh-walk-duration: 420ms;
-  --hh-bob: calc(var(--hu) * -6);
-  --hh-step: -4px; /* 這個位移套在 SVG 裡的腳上，單位是 SVG 座標，會跟著 SVG 一起縮放 */
+  --ch-walk-duration: 420ms;
+  --ch-bob: calc(var(--chu) * -6);
+  --ch-step: -4px; /* 這個位移套在 SVG 裡的腳上，單位是 SVG 座標，會跟著 SVG 一起縮放 */
+
+  /* ---------- 小栗（刺蝟店員）的配色 ---------- */
 
   --hh-spine-dark: #6e4430;
   --hh-spine: #9a6644;
@@ -168,7 +171,6 @@
   --hh-baguette-score: #b9773a;
   --hh-basket: #c8955b;
   --hh-basket-dark: #9e6b3a;
-  --hh-shadow: rgba(0, 0, 0, 0.22);
 
   /* ---------- 麵包（Figma「Bread」4 種正面圖） ---------- */
 
@@ -247,7 +249,7 @@
   :root {
     --box-scale: 1.5;
     --case-scale: 0.6;
-    --hh-scale: 1.1;
+    --ch-scale: 1.1;
     --stage-height: 440px;
     --font-size-h1: 28px;
   }

@@ -2,7 +2,7 @@
   角色的圖層產生器。
 
   為什麼用 JS 產生：小栗（之後還有三位顧客）會出現在好幾頁——角色展示頁、烘焙店、遊戲。
-  每一頁只要放一個空殼 <div class="hedgehog" data-character="hedgehog">，這支就會把
+  每一頁只要放一個空殼 <div class="character" data-character="hedgehog">，這支就會把
   6 層 SVG 填進去；改造型只要改這裡一處，不用到每一頁複製貼上同一大段 SVG。
 
   顏色全部是 CSS 變數（styles/tokens.css 的 --hh-*），這裡只有形狀。
@@ -31,7 +31,7 @@
     `style="fill: none; stroke: var(${token}); stroke-width: ${width}; stroke-linecap: round; stroke-linejoin: round"`;
 
   const layer = (name, depth, body) =>
-    `<svg class="hh-layer hh-layer--${name}" style="--depth: ${depth}" viewBox="0 0 200 260" aria-hidden="true" focusable="false">${body}</svg>`;
+    `<svg class="character__layer character__layer--${name}" style="--depth: ${depth}" viewBox="0 0 200 260" aria-hidden="true" focusable="false">${body}</svg>`;
 
   const HEDGEHOG_LAYERS = [
     layer(
@@ -43,8 +43,8 @@
     layer(
       'body',
       -14,
-      `<g class="hh-foot hh-foot--l"><ellipse cx="78" cy="242" rx="17" ry="10" ${fill('--hh-foot')} /></g>` +
-        `<g class="hh-foot hh-foot--r"><ellipse cx="122" cy="242" rx="17" ry="10" ${fill('--hh-foot')} /></g>` +
+      `<g class="ch-foot ch-foot--l"><ellipse cx="78" cy="242" rx="17" ry="10" ${fill('--hh-foot')} /></g>` +
+        `<g class="ch-foot ch-foot--r"><ellipse cx="122" cy="242" rx="17" ry="10" ${fill('--hh-foot')} /></g>` +
         `<ellipse cx="100" cy="198" rx="54" ry="46" ${fill('--hh-body')} />` +
         `<ellipse cx="100" cy="206" rx="38" ry="34" ${fill('--hh-belly')} />`
     ),
@@ -119,7 +119,7 @@
   for (const el of document.querySelectorAll('[data-character="hedgehog"]')) {
     el.insertAdjacentHTML(
       'beforeend',
-      `<div class="hedgehog__shadow"></div><div class="hedgehog__rig">${HEDGEHOG_LAYERS}</div>`
+      `<div class="character__shadow"></div><div class="character__rig">${HEDGEHOG_LAYERS}</div>`
     );
   }
 })();

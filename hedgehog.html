@@ -7,7 +7,7 @@
     <title>3D 實驗室｜小栗</title>
     <link rel="stylesheet" href="styles/tokens.css" />
     <link rel="stylesheet" href="styles/lab.css" />
-    <link rel="stylesheet" href="styles/hedgehog.css" />
+    <link rel="stylesheet" href="styles/characters.css" />
     <!-- 順序有關係：先長出角色的圖層，rotate.js 再接手旋轉 -->
     <script src="scripts/characters.js" defer></script>
     <script src="scripts/rotate.js" defer></script>
@@ -31,7 +31,7 @@
 
       <section class="lab__demo" data-rotate-root>
         <div
-          class="scene scene--hedgehog"
+          class="scene scene--character"
           data-rotate-stage
           tabindex="0"
           role="group"
@@ -41,7 +41,7 @@
         >
           <div
             id="hh"
-            class="hedgehog"
+            class="character"
             data-rotate-target
             data-character="hedgehog"
             data-expression="normal"

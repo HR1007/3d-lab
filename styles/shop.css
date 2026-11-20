@@ -10,7 +10,7 @@
 */
 
 /*
-  擺放用的變數不往下繼承：展示櫃、小栗也是房間裡的 .shop__part，
+  擺放用的變數不往下繼承：展示櫃、角色也是房間裡的 .shop__part，
   它們裡面的零件如果沒寫 --l，不能撿到外層櫃子自己的擺放位置。
 */
 @property --l {
@@ -82,13 +82,13 @@
 
 .shop {
   /*
-    放進來的展示櫃、小栗改用烘焙店的單位。用到這兩個單位的 token 也要在這裡重算，
+    放進來的展示櫃、角色改用烘焙店的單位。用到這兩個單位的 token 也要在這裡重算，
     因為 :root 上的值已經用各自展示頁的倍率算好了。
   */
   --cu: var(--su);
-  --hu: var(--su);
+  --chu: var(--su);
   --case-frame-width: calc(var(--cu) * 2);
-  --hh-bob: calc(var(--hu) * -6);
+  --ch-bob: calc(var(--chu) * -6);
 
   position: relative;
   height: calc(var(--su) * 760);

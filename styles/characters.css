@@ -1,0 +1,145 @@
+/*
+  角色（小栗與顧客）共用的分層紙偶。結構照 Figma「Hedgehog Baker」：
+    .character          被轉的元素（preserve-3d），整體角度用 --rx / --ry
+    .character__shadow  腳下的影子，平躺在地上，不跟著身體上下晃
+    .character__rig     身體本體；走路時整個上下晃、左右擺
+    .character__layer   6 層平面，每層用 --depth 前後錯開（Figma 的 Depth），由後往前：
+                          背面 −30、身體 −14、頭 0、頭飾 +4、五官 +6、手 +18
+
+  每個角色都畫在同一個 200 × 260 的畫板上，腳底在 y 250，所以這裡的尺寸、影子、走路全部共用。
+  狀態全部用 data 屬性切換，遊戲那一頁直接改屬性就好：
+    data-expression  normal（平常）／happy（開心）／flustered（慌張、著急）
+    data-walking     true 時走路
+    data-carry       手上拿的東西，每個角色各有幾種（小栗：basket／baguette）
+
+  尺寸以 --chu（角色的「Figma 1px」）為單位，放進不同場景時在容器上覆寫 --chu 即可。
+  圖層的 SVG 由 scripts/characters.js 產生。
+*/
+
+.character {
+  --tilt-x: var(--ch-tilt-x);
+  --tilt-y: var(--ch-tilt-y);
+  --rx: var(--tilt-x);
+  --ry: var(--tilt-y);
+  position: relative;
+  width: calc(var(--chu) * 200);
+  height: calc(var(--chu) * 260);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+}
+
+.character.is-settling {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.character__rig {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* 左右擺的支點在腳底，擺起來像在走路，而不是整隻在空中晃 */
+  transform-origin: 50% 95%;
+}
+
+.character__layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: translateZ(calc(var(--chu) * var(--depth)));
+}
+
+.character__shadow {
+  position: absolute;
+  left: calc(var(--chu) * 30);
+  top: calc(var(--chu) * 225);
+  width: calc(var(--chu) * 140);
+  height: calc(var(--chu) * 50);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--ch-shadow), transparent);
+  /* 中心對齊腳底（Figma 座標 y 250），轉 X 90° 平躺在地上 */
+  transform: rotateX(90deg);
+}
+
+/* ---------- 表情：五官那一層裡有三組，一次只顯示一組 ---------- */
+
+.character [data-face] {
+  display: none;
+}
+.character[data-expression='normal'] [data-face='normal'],
+.character[data-expression='happy'] [data-face='happy'],
+.character[data-expression='flustered'] [data-face='flustered'] {
+  display: inline;
+}
+
+/* ---------- 手上拿的東西 ---------- */
+
+.character [data-carry-item] {
+  display: none;
+}
+.character[data-carry='basket'] [data-carry-item='basket'],
+.character[data-carry='baguette'] [data-carry-item='baguette'] {
+  display: inline;
+}
+
+/* ---------- 走路：身體上下晃＋左右擺，兩隻腳輪流抬起 ---------- */
+
+.character[data-walking='true'] .character__rig {
+  animation: ch-bob var(--ch-walk-duration) ease-in-out infinite;
+}
+
+.character[data-walking='true'] .ch-foot {
+  animation: ch-step var(--ch-walk-duration) ease-in-out infinite;
+}
+
+.character[data-walking='true'] .ch-foot--r {
+  animation-delay: calc(var(--ch-walk-duration) / -2);
+}
+
+@keyframes ch-bob {
+  0%,
+  50%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  25% {
+    translate: 0 var(--ch-bob);
+    rotate: -2deg;
+  }
+  75% {
+    translate: 0 var(--ch-bob);
+    rotate: 2deg;
+  }
+}
+
+@keyframes ch-step {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 var(--ch-step);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character[data-walking='true'] .character__rig,
+  .character[data-walking='true'] .ch-foot {
+    animation: none;
+  }
+  .character.is-settling {
+    transition: none;
+  }
+}
+
+/* ---------- 角色展示頁的舞台 ---------- */
+
+.scene--character {
+  height: var(--ch-stage-height);
+  display: grid;
+  place-items: center;
+  perspective: var(--ch-perspective);
+  background: linear-gradient(var(--ch-stage-top), var(--ch-stage-bottom));
+}

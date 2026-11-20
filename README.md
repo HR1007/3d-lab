@@ -32,7 +32,7 @@ Figma 的 transform origin 預設在圖層中心，CSS 也是，所以數值可�
 
 1. 紙盒 — `index.html`
 2. 展示櫃 — `display-case.html`（4 種餅乾各用 SVG `<symbol>` 畫一次、`<use>` 引用；一層 4×2，部分疊成一疊）
-3. 刺蝟店員「小栗」 — `hedgehog.html`（6 層分層紙偶；三種表情、走路、提籃子／拿法棍，用 data 屬性切換；圖層由 `scripts/characters.js` 產生，之後烘焙店和遊戲頁共用）
+3. 刺蝟店員「小栗」 — `hedgehog.html`（6 層分層紙偶；三種表情、走路、提籃子／拿法棍，用 data 屬性切換；圖層由 `scripts/characters.js` 產生，分層、表情、走路的樣式在 `styles/characters.css`，之後的顧客也共用）
 4. 烘焙店「日日餅乾」 — `bakery.html`（整間店都是平面；鏡頭切換門口／展示櫃／麵包架／櫃台，拖曳可以轉頭。場景由 `scripts/shop.js` 產生，之後遊戲頁共用；展示櫃、餅乾、麵包、商品價目表集中在 `scripts/props.js`）
 5. 三位顧客與對話泡泡 — 待做
 6. 小遊戲 — 待做

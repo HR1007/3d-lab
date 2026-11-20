@@ -172,7 +172,7 @@
   // ---------- 小栗：站在櫃台後面。腳底（角色畫板的 y 250）踩在地板上 ----------
 
   const clerk =
-    `<div class="hedgehog shop__part shop__clerk" data-character="hedgehog" data-expression="normal" ` +
+    `<div class="character shop__part shop__clerk" data-character="hedgehog" data-expression="normal" ` +
     `data-walking="false" data-carry="basket" style="${vars({ l: 540, t: 450, w: 200, h: 260, tz: -1140 })}"></div>`;
 
   // ---------- 吊燈：電線、燈罩、光暈畫在同一張平面上，永遠轉向鏡頭 ----------
