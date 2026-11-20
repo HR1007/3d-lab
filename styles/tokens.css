@@ -306,6 +306,78 @@
   --shop-lamp-shade: #3e5c4f;
   --shop-lamp-bulb: #fff3c4;
   --shop-lamp-glow: rgba(255, 233, 168, 0.55);
+
+  /* ---------- 小遊戲：店門口（開場）。[需確認] 配色是暫定值 ---------- */
+
+  /* 店外的天空與人行道 */
+  --front-sky-top: #bfdcea;
+  --front-sky-bottom: #f6ecdc;
+  --front-ground: #ddd2c3;
+  --front-ground-line: #cbbda9;
+  --front-step: #cdbfac;
+  --front-shadow: rgba(58, 42, 30, 0.18);
+
+  /* 店面：奶油色雨淋板外牆，屋簷、壁柱、窗框、門框、腰板漆成墨綠（跟店裡的吊燈同色） */
+  --front-wall: #f5e8d2;
+  --front-wall-line: #e8d6b8;
+  --front-trim: var(--shop-lamp-shade);
+  --front-trim-light: #58786a;
+  --front-sign-line: rgba(255, 244, 226, 0.55);
+  --front-glass: rgba(198, 226, 236, 0.3);
+  --front-glass-shine: rgba(255, 255, 255, 0.55);
+  --front-glass-shine-soft: rgba(255, 255, 255, 0.3);
+  --front-decal: rgba(255, 255, 255, 0.85);
+  --front-platform: var(--case-wood);
+  --front-platform-top: #c4895a;
+  --front-jar-glass: rgba(220, 238, 244, 0.22);
+  --front-jar-line: rgba(122, 82, 54, 0.45);
+  --front-jar-lid: var(--case-wood);
+  --front-jar-lid-dark: var(--case-wood-deep);
+  --front-stand: #f7f3ee;
+
+  /* 店門：木門、玻璃、黃銅把手，玻璃上掛 OPEN 牌 */
+  --front-door: var(--case-wood);
+  --front-door-hover: #b97c50;
+  --front-door-dark: var(--case-wood-dark);
+  --front-door-glass: #cfe3e8;
+  --front-handle: #e3b552;
+  --front-open: var(--case-cream);
+  --front-open-ink: var(--cookie-jam);
+  --front-open-cord: var(--case-wood-deep);
+  --front-focus: var(--case-cream);
+  --front-hint: rgba(255, 244, 226, 0.9); /* 門框外擴散的提示光暈 */
+  --front-hint-fade: rgba(255, 244, 226, 0);
+
+  /* 條紋遮雨棚 */
+  --front-awning-a: #e2703a;
+  --front-awning-b: var(--case-cream);
+  --front-awning-shade: rgba(58, 42, 30, 0.22);
+
+  /* 門口的盆栽 */
+  --front-pot: #c9744a;
+  --front-pot-rim: #b5633d;
+  --front-bush: #79a872;
+  --front-bush-dark: #5d8a58;
+  --front-flower: var(--cookie-icing);
+
+  /* 開場的動畫 [需確認] */
+  --game-door-duration: 900ms;
+  --game-door-ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --game-door-open: 100; /* 門往店裡轉開幾度 */
+  --game-walk-duration: 2400ms; /* 從人行道走進門口 */
+  --game-hint-duration: 1600ms;
+
+  /*
+    遊戲舞台的取景框：桌面版跟烘焙店頁一樣 1200 × 760。
+    手機版寬度撐滿螢幕、高度加到 1800（[需確認]），上下多看到地板和天花板，
+    說明卡蓋在下面的地板上，不會擋到商品和小栗。
+  */
+  --game-view-height: calc(var(--su) * 760);
+  --game-card-width: 680px;
+  --game-button-height: 44px; /* 手指按得準的大小 */
+  --game-button-bg: var(--case-wood-deep);
+  --game-button-hover: var(--case-wood-dark);
+  --game-button-ink: var(--case-cream);
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
@@ -316,6 +388,7 @@
     --ch-scale: 1.1;
     --stage-height: 440px;
     --font-size-h1: 28px;
+    --game-view-height: calc(var(--su) * 1800);
   }
 }
 

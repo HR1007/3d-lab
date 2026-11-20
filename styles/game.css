@@ -1,0 +1,196 @@
+/*
+  小遊戲頁。舞台就是烘焙店（styles/shop.css）加上店門口（styles/storefront.css），這裡管：
+    .game          舞台本身：店外是天空；手機版撐滿螢幕寬、加高
+    .game__card    蓋在舞台下方的說明卡：店外的提示、導覽每一站、開始營業
+    .game__status  開始營業之後左上角的狀態
+  開場的每一步寫在 .game 的 data-phase 上，由 scripts/game.js 切換：
+    street 店外 → entering 推門進店 → tour 導覽 → ready 準備開店 → open 營業中
+*/
+
+/* 店外看得到天空：舞台底色換成天空的漸層，取代烘焙店頁的取景框底色 */
+.game {
+  position: relative;
+  background: linear-gradient(var(--front-sky-top), var(--front-sky-bottom));
+}
+
+/* 遊戲不拖曳轉頭：拿掉實驗頁舞台的抓取游標，也讓手機能照常上下捲動頁面 */
+.lab__demo .game {
+  cursor: auto;
+  touch-action: auto;
+}
+
+.game .shop {
+  height: var(--game-view-height);
+}
+
+/*
+  鏡頭多一個「店外」：站在人行道上，整個店面放得進畫面。[需確認]
+  手機版的取景框比較高、比較窄，站近一點，門才不會太小。
+*/
+.shop[data-camera='street'] {
+  --cam-x: 600;
+  --cam-y: 340;
+  --cam-z: 1700;
+  --cam-yaw: 0deg;
+}
+
+/* 從店外走進門口：路比較長，換一個比較久的時間 */
+.shop[data-walk='enter'] {
+  --shop-cam-duration: var(--game-walk-duration);
+}
+
+/* 「回到店門口」直接跳回去，不要倒著穿過已經關上的門 */
+.shop[data-instant],
+.shop[data-instant] .storefront__door {
+  transition: none;
+}
+
+/* ---------- 說明卡 ---------- */
+
+.game__card {
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-2);
+  z-index: 1;
+  display: grid;
+  gap: var(--sp-2);
+  width: min(var(--game-card-width), calc(100% - var(--sp-2) * 2));
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  translate: -50% 0;
+}
+
+.game__card[hidden] {
+  display: none;
+}
+
+.game__card:not([hidden]) {
+  animation: game-card-in var(--motion-fast) var(--motion-ease);
+}
+
+@keyframes game-card-in {
+  from {
+    opacity: 0;
+    translate: -50% var(--sp-1);
+  }
+}
+
+.game__card-title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.5;
+}
+
+/* 導覽第幾站：放在標題前面的小字 */
+.game__card-step {
+  margin-right: var(--sp-1);
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-regular);
+}
+
+.game__card-text {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.game__card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+}
+
+.game__card-actions[hidden] {
+  display: none;
+}
+
+/* 按鈕至少 44 高，小朋友用手指也按得準 */
+.game__button {
+  min-height: var(--game-button-height);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--game-button-bg);
+  border-radius: var(--radius-pill);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.game__button:hover {
+  background: var(--game-button-hover);
+}
+
+.game__button--ghost {
+  border-color: var(--card-line);
+  background: transparent;
+  color: var(--card-ink);
+  font-weight: var(--font-weight-regular);
+}
+
+.game__button--ghost:hover {
+  background: var(--card-line);
+}
+
+.game__button:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+.game__button[hidden] {
+  display: none;
+}
+
+/* 營業中 */
+.game__status {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: 1;
+  margin: 0;
+  padding: calc(var(--sp-1) / 2) var(--sp-2);
+  border-radius: var(--radius-pill);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+}
+
+.game__status[hidden] {
+  display: none;
+}
+
+/* 桌面版：文字在左、按鈕在右排成一列，卡片矮一點，不擋到櫃台和小栗 */
+@media (min-width: 768px) {
+  .game__card {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    column-gap: var(--sp-3);
+  }
+}
+
+/* 手機版：舞台撐滿螢幕寬（抵掉頁面左右的留白）、加高；店外的鏡頭站近一點 */
+@media (max-width: 767px) {
+  .lab__demo--game {
+    margin-inline: calc(var(--sp-3) * -1);
+    border-inline: 0;
+    border-radius: 0;
+  }
+
+  .shop[data-camera='street'] {
+    --cam-y: 380;
+    --cam-z: 1250;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game__card:not([hidden]) {
+    animation: none;
+  }
+}

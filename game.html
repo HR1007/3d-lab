@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>3D 實驗室｜小遊戲</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/lab.css" />
+    <link rel="stylesheet" href="styles/display-case.css" />
+    <link rel="stylesheet" href="styles/characters.css" />
+    <link rel="stylesheet" href="styles/shop.css" />
+    <link rel="stylesheet" href="styles/storefront.css" />
+    <link rel="stylesheet" href="styles/game.css" />
+    <!--
+      順序有關係：props.js 準備好商品 → shop.js 蓋出整間店 → storefront.js 在門口加上店面 →
+      characters.js 把小栗長進櫃台後面 → game.js 接手開場
+    -->
+    <script src="scripts/props.js" defer></script>
+    <script src="scripts/shop.js" defer></script>
+    <script src="scripts/storefront.js" defer></script>
+    <script src="scripts/characters.js" defer></script>
+    <script src="scripts/game.js" defer></script>
+  </head>
+  <body>
+    <main class="lab">
+      <header>
+        <nav class="lab__nav" aria-label="3D 實驗室範例">
+          <a href="index.html">01 紙盒</a>
+          <a href="display-case.html">02 展示櫃</a>
+          <a href="hedgehog.html">03 小栗</a>
+          <a href="bakery.html">04 烘焙店</a>
+          <a href="customers.html">05 顧客</a>
+          <a href="game.html" aria-current="page">06 小遊戲</a>
+        </nav>
+        <h1 class="lab__title">小遊戲</h1>
+        <p class="lab__lead">
+          站在「日日餅乾」門口，點店門走進去：門往店裡轉開，鏡頭穿過門口進到店裡，
+          再依序看過展示櫃、麵包架、櫃台，最後開始營業。這一頁先做到開場，顧客上門與點餐在下一輪加入。
+        </p>
+      </header>
+
+      <section class="lab__demo lab__demo--game">
+        <div id="game" class="scene scene--shop game" data-game data-phase="street" role="group" aria-roledescription="小遊戲" aria-label="日日餅乾小遊戲">
+          <div class="shop" data-camera="street" data-door="closed">
+            <!-- 整間店由 scripts/shop.js 產生，門口的店面由 scripts/storefront.js 加上 -->
+            <div class="shop__room" data-scene="bakery" data-storefront></div>
+          </div>
+
+          <p class="game__status" data-game-status hidden>營業中</p>
+
+          <div class="game__card" data-game-card aria-live="polite" hidden>
+            <div class="game__card-body">
+              <h2 class="game__card-title"><span class="game__card-step" data-game-step></span><span data-game-title></span></h2>
+              <p class="game__card-text" id="game-card-text" data-game-text></p>
+            </div>
+            <div class="game__card-actions" data-game-actions>
+              <button type="button" class="game__button game__button--ghost" data-game-skip>略過導覽</button>
+              <button type="button" class="game__button" data-game-next aria-describedby="game-card-text"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lab__controls">
+          <div class="lab__control" role="group" aria-label="開場">
+            <span class="lab__control-label" aria-hidden="true">開場</span>
+            <button type="button" data-game-restart>回到店門口</button>
+          </div>
+        </div>
+
+        <div class="lab__meta">
+          <p>點店門進店・導覽可以略過・6-1 先做到「開始營業」</p>
+        </div>
+      </section>
+
+      <section class="lab__notes">
+        <h2>做法重點</h2>
+        <table>
+          <thead>
+            <tr><th>部位</th><th>做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>店面</td><td>店面的牆放在 Depth 600，把烘焙店原本開著的門口往外推，中間多一段前廳；烘焙店頁的四個鏡頭都還在店裡，進店後照樣用</td></tr>
+            <tr><td>門窗</td><td>一整片牆用 clip-path 挖三個洞（evenodd：外框裡再描一圈就變成洞），洞後面放半透明玻璃與展示台，看得到店裡</td></tr>
+            <tr><td>店門</td><td>一顆按鈕，轉軸放在左緣；打開時 Y 從 0 轉到 100°，往店裡推開。走進店之後門在背後關上</td></tr>
+            <tr><td>遮雨棚</td><td>斜斜往外伸的條紋平面（轉 X 約 63°），前緣再掛一條立著的波浪邊，波浪用 mask 剪</td></tr>
+            <tr><td>走進店裡</td><td>鏡頭從人行道直直走到門內，四個鏡頭數字一起補間；高度一路都在門框以下，不會穿過門框</td></tr>
+            <tr><td>手機版</td><td>舞台撐滿螢幕寬、加高；店外的鏡頭站近一點，說明卡蓋在下面的地板上，按鈕至少 44 高</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

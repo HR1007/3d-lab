@@ -1,0 +1,333 @@
+/*
+  遊戲頁的店門口「日日餅乾」。HTML 由 scripts/storefront.js 產生，擺法跟烘焙店一樣是 .shop__part / .shop__deco。
+    .storefront__wall    店面的牆（z 600），門窗的洞用 clip-path 挖
+    .storefront__door    店門，一顆按鈕；鉸鏈在左邊，打開時往店裡轉
+    .storefront__awning  遮雨棚，從牆上斜斜往外伸；.storefront__valance 是前緣的波浪邊
+  另外補上前廳的天花板（只有一根樑）。所有尺寸都乘上 --su。
+*/
+
+/* ---------- 前廳 ---------- */
+
+/* 前廳深 600，只放中間那根樑（在 z 300），跟店裡每 300 一根的間距接得上 */
+.shop__ceiling--hall {
+  background: linear-gradient(
+    var(--shop-ceiling) calc(var(--su) * 285),
+    var(--shop-beam) 0 calc(var(--su) * 315),
+    var(--shop-ceiling) 0
+  );
+}
+
+/* ---------- 外牆 ---------- */
+
+/* 橫向的雨淋板：每 40 一條細縫 */
+.storefront__wall {
+  background: repeating-linear-gradient(
+    var(--front-wall) 0 calc(var(--su) * 38),
+    var(--front-wall-line) 0 calc(var(--su) * 40)
+  );
+}
+
+.storefront__cornice,
+.storefront__pilaster,
+.storefront__kick {
+  background: var(--front-trim);
+}
+
+.storefront__cornice-trim,
+.storefront__sill {
+  background: var(--front-trim-light);
+}
+
+.storefront__sill {
+  border-radius: calc(var(--su) * 3);
+}
+
+/* 腰板：墨綠底再框一圈淺一點的線，像嵌進去的木板 */
+.storefront__kick {
+  box-shadow:
+    inset 0 0 0 calc(var(--su) * 12) var(--front-trim),
+    inset 0 0 0 calc(var(--su) * 15) var(--front-trim-light);
+}
+
+/* 窗框只畫外圈；框的內緣剛好是牆上挖洞的邊 */
+.storefront__frame {
+  box-shadow: inset 0 0 0 calc(var(--su) * 16) var(--front-trim);
+}
+
+.storefront__door-frame {
+  border: calc(var(--su) * 18) solid var(--front-trim);
+  border-bottom: 0;
+}
+
+.storefront__awning-shadow {
+  background: linear-gradient(var(--front-shadow), transparent);
+}
+
+/* ---------- 招牌與鵝頸燈 ---------- */
+
+.storefront__sign {
+  border-radius: calc(var(--su) * 14);
+  background: var(--shop-sign);
+  box-shadow:
+    inset 0 0 0 calc(var(--su) * 8) var(--shop-sign),
+    inset 0 0 0 calc(var(--su) * 10) var(--front-sign-line);
+  color: var(--shop-sign-ink);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.storefront__sign-name,
+.storefront__sign-latin {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.storefront__sign-name {
+  top: calc(var(--su) * 22);
+  font-size: calc(var(--su) * 64);
+  line-height: 1.3;
+}
+
+/* letter-spacing 會在最後一個字後面多留一格，用 text-indent 補在前面，字才會置中 */
+.storefront__sign-latin {
+  top: calc(var(--su) * 110);
+  font-size: calc(var(--su) * 17);
+  line-height: 1.2;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+.storefront__sign-icon svg,
+.storefront__lamp svg,
+.storefront__item svg,
+.storefront__open-cord svg,
+.storefront__aboard-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.storefront__lamp--flip {
+  transform: scaleX(-1);
+}
+
+/* ---------- 櫥窗 ---------- */
+
+/*
+  半透明的玻璃，看得到後面的展示台和店裡。
+  上方一條橫框隔出兩格小窗，再加兩道斜斜的反光。
+*/
+.storefront__glass {
+  background:
+    linear-gradient(
+      115deg,
+      transparent 30%,
+      var(--front-glass-shine) 0 36%,
+      transparent 0 42%,
+      var(--front-glass-shine-soft) 0 45%,
+      transparent 0
+    ),
+    linear-gradient(90deg, transparent calc(50% - var(--su) * 4), var(--front-trim) 0 calc(50% + var(--su) * 4), transparent 0) top /
+      100% calc(var(--su) * 70) no-repeat,
+    linear-gradient(transparent calc(var(--su) * 66), var(--front-trim) 0 calc(var(--su) * 76), transparent 0),
+    var(--front-glass);
+}
+
+.storefront__decal {
+  position: absolute;
+  top: calc(var(--su) * 96);
+  left: 0;
+  right: 0;
+  color: var(--front-decal);
+  font-size: calc(var(--su) * 30);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  text-align: center;
+}
+
+.storefront__platform {
+  background: var(--front-platform);
+}
+
+.storefront__platform-top {
+  background: var(--front-platform-top);
+}
+
+/* ---------- 店門 ---------- */
+
+.storefront__door {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  /* 門板左右兩條深色的邊框；滑過去時門板稍微亮一點 */
+  --door: var(--front-door);
+  background: linear-gradient(
+    90deg,
+    var(--front-door-dark) 0 calc(var(--su) * 8),
+    var(--door) 0 calc(100% - var(--su) * 8),
+    var(--front-door-dark) 0
+  );
+  /* 鉸鏈在左邊：轉軸放在左緣，--ay 從 0 轉到 --game-door-open 就是往店裡推開 */
+  transform-origin: 0 50%;
+  transition: --ay var(--game-door-duration) var(--game-door-ease);
+}
+
+.storefront__door:hover:enabled {
+  --door: var(--front-door-hover);
+}
+
+.storefront__door:disabled {
+  cursor: default;
+}
+
+.storefront__door:focus-visible {
+  outline: calc(var(--su) * 6) solid var(--front-focus);
+  outline-offset: calc(var(--su) * 4);
+}
+
+.shop[data-door='open'] .storefront__door {
+  --ay: var(--game-door-open);
+}
+
+.storefront__door-glass {
+  border-radius: calc(var(--su) * 6);
+  background:
+    linear-gradient(115deg, transparent 35%, var(--front-glass-shine) 0 43%, transparent 0),
+    var(--front-door-glass);
+  box-shadow: inset 0 0 0 calc(var(--su) * 6) var(--front-door-dark);
+}
+
+.storefront__door-panel {
+  border-radius: calc(var(--su) * 4);
+  box-shadow: inset 0 0 0 calc(var(--su) * 5) var(--front-door-dark);
+}
+
+.storefront__handle {
+  border-radius: calc(var(--su) * 6);
+  background: var(--front-handle);
+}
+
+.storefront__open {
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--su) * 6);
+  background: var(--front-open);
+}
+
+.storefront__open-text {
+  color: var(--front-open-ink);
+  font-size: calc(var(--su) * 24);
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+}
+
+/* 還在店外的時候，門框外圈一圈光暈慢慢擴散，提示可以按 */
+.game[data-phase='street'] .storefront__door {
+  animation: door-hint var(--game-hint-duration) ease-out infinite;
+}
+
+@keyframes door-hint {
+  from {
+    box-shadow: 0 0 0 0 var(--front-hint);
+  }
+  to {
+    box-shadow: 0 0 0 calc(var(--su) * 28) var(--front-hint-fade);
+  }
+}
+
+/* ---------- 遮雨棚 ---------- */
+
+/*
+  條紋寬 50。鏡頭站在街上時眼睛比遮雨棚低，看到的是背光的底面，整片壓暗一點；
+  前緣的波浪邊是立著的，正面朝街上，不用壓暗。
+*/
+.storefront__awning {
+  background:
+    linear-gradient(var(--front-awning-shade), var(--front-awning-shade)),
+    repeating-linear-gradient(90deg, var(--front-awning-a) 0 calc(var(--su) * 50), var(--front-awning-b) 0 calc(var(--su) * 100));
+}
+
+/*
+  波浪邊：上半截是整條布，下半截每 50 一個半圓，顏色跟著上面的條紋一深一淺。
+  半圓直接用圓形漸層畫在背景上，不用另外剪形狀。
+*/
+.storefront__valance {
+  background:
+    repeating-linear-gradient(90deg, var(--front-awning-a) 0 calc(var(--su) * 50), var(--front-awning-b) 0 calc(var(--su) * 100))
+      top / 100% 50% no-repeat,
+    radial-gradient(circle at 25% 0, var(--front-awning-a) calc(var(--su) * 24), transparent calc(var(--su) * 25)) bottom left /
+      calc(var(--su) * 100) 50% repeat-x,
+    radial-gradient(circle at 75% 0, var(--front-awning-b) calc(var(--su) * 24), transparent calc(var(--su) * 25)) bottom left /
+      calc(var(--su) * 100) 50% repeat-x;
+}
+
+/* ---------- 人行道、台階、A 字立牌 ---------- */
+
+/* 100 一格的地磚，靠牆那一側有一點陰影 */
+.storefront__ground {
+  background:
+    linear-gradient(var(--front-shadow), transparent calc(var(--su) * 80)),
+    linear-gradient(90deg, var(--front-ground-line) 0 calc(var(--su) * 3), transparent 0) 0 0 / calc(var(--su) * 100)
+      calc(var(--su) * 100),
+    linear-gradient(var(--front-ground-line) 0 calc(var(--su) * 3), transparent 0) 0 0 / calc(var(--su) * 100)
+      calc(var(--su) * 100),
+    var(--front-ground);
+}
+
+.storefront__step {
+  border-radius: calc(var(--su) * 6);
+  background: var(--front-step);
+}
+
+/* 跟店裡的黑板菜單同一套：深綠黑板、木框、粉筆字 */
+.storefront__aboard {
+  border-radius: calc(var(--su) * 8);
+  background: var(--shop-board);
+  box-shadow: inset 0 0 0 calc(var(--su) * 10) var(--shop-board-frame);
+  color: var(--shop-chalk);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.storefront__aboard-title,
+.storefront__aboard-name,
+.storefront__aboard-price {
+  position: absolute;
+  left: 0;
+  right: 0;
+  line-height: 1.3;
+}
+
+.storefront__aboard-title {
+  top: calc(var(--su) * 26);
+  font-size: calc(var(--su) * 24);
+}
+
+.storefront__aboard-name {
+  top: calc(var(--su) * 150);
+  font-size: calc(var(--su) * 20);
+}
+
+.storefront__aboard-price {
+  top: calc(var(--su) * 180);
+  color: var(--shop-chalk-muted);
+  font-size: calc(var(--su) * 17);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront__door {
+    transition: none;
+  }
+  .game[data-phase='street'] .storefront__door {
+    animation: none;
+  }
+}
