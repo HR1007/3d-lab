@@ -13,12 +13,6 @@
   background: linear-gradient(var(--front-sky-top), var(--front-sky-bottom));
 }
 
-/* 遊戲不拖曳轉頭：拿掉實驗頁舞台的抓取游標，也讓手機能照常上下捲動頁面 */
-.lab__demo .game {
-  cursor: auto;
-  touch-action: auto;
-}
-
 .game .shop {
   height: var(--game-view-height);
 }
@@ -204,24 +198,22 @@
   }
 }
 
-/* 手機版：舞台撐滿螢幕寬（抵掉頁面左右的留白）、加高；店外的鏡頭站近一點 */
+/* 手機版：舞台撐滿整個螢幕（styles/page.css）；店外的鏡頭站近一點 */
 @media (max-width: 767px) {
-  .lab__demo--game {
-    margin-inline: calc(var(--sp-3) * -1);
-    border-inline: 0;
-    border-radius: 0;
-  }
-
   .shop[data-camera='street'] {
     --cam-y: 380;
     --cam-z: 1250;
   }
 
-  /* 手機版題目卡蓋住下半部：鏡頭往下看 30°，顧客和小栗就落在上半部 [需確認] */
+  /*
+    手機版舞台撐滿整個螢幕、很高：鏡頭往前站到顧客前面一點，角色才不會太小；
+    往下看 14°，顧客和小栗落在題目卡上面。[需確認]
+  */
   .shop[data-camera='play'] {
     --cam-x: 560;
     --cam-y: 420;
-    --cam-pitch: 30deg;
+    --cam-z: -420;
+    --cam-pitch: 14deg;
   }
 
   /* 手機版看貨架：站近一點，字母才夠大；餅乾櫃剛好放得下 a 到 m */

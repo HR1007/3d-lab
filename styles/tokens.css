@@ -369,10 +369,13 @@
 
   /*
     遊戲舞台的取景框：桌面版跟烘焙店頁一樣 1200 × 760。
-    手機版寬度撐滿螢幕、高度加到 1800（[需確認]），上下多看到地板和天花板，
+    手機版舞台撐滿整個螢幕（寬 100%、高 100svh），上下多看到地板和天花板，
     說明卡蓋在下面的地板上，不會擋到商品和小栗。
   */
   --game-view-height: calc(var(--su) * 760);
+  --app-bg: #2a1f19; /* 舞台外面的頁面底色 */
+  --app-stage-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  --sr-only-size: 1px;
   --game-card-width: 680px;
   --game-button-height: 44px; /* 手指按得準的大小 */
   --game-button-bg: var(--case-wood-deep);
@@ -445,7 +448,7 @@
     --ch-scale: 1.1;
     --stage-height: 440px;
     --font-size-h1: 28px;
-    --game-view-height: calc(var(--su) * 1800);
+    --game-view-height: 100svh; /* 手機版撐滿整個螢幕 */
     --countdown-size: 88px;
   }
 }

@@ -1,0 +1,66 @@
+/*
+  頁面版面：整頁只有小遊戲。
+  桌面版：舞台照 1200 × 760 的比例，在畫面正中央能放多大就放多大（寬度不超過視窗、高度不超過視窗）。
+  手機版：舞台撐滿整個螢幕（寬 100%、高度由 --game-view-height 決定，見 tokens.css）。
+  遊戲裡的東西各自在 shop.css、storefront.css、game.css、play.css、book.css。
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.6;
+}
+
+.app {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+}
+
+.game {
+  width: min(100vw, calc(100svh * 1200 / 760));
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (min-width: 768px) {
+  .game {
+    border-radius: var(--radius);
+    box-shadow: var(--app-stage-shadow);
+  }
+}
+
+@media (max-width: 767px) {
+  .game {
+    width: 100vw;
+  }
+}
+
+/* 只給讀螢幕的軟體讀的文字（頁面標題） */
+.visually-hidden {
+  position: absolute;
+  width: var(--sr-only-size);
+  height: var(--sr-only-size);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 放 SVG <symbol> 定義的容器（scripts/props.js）：本身不佔版面也不顯示 */
+.lab__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
