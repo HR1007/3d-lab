@@ -294,6 +294,29 @@
   font-size: var(--font-size-meta);
 }
 
+/* 難度標籤：初級綠、中級橘、高級紅 */
+.quiz__level {
+  display: inline-block;
+  margin-inline-end: var(--sp-1);
+  padding: 0 var(--sp-1);
+  border-radius: var(--radius-pill);
+  background: var(--quiz-level-1);
+  color: var(--quiz-level-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+.quiz__level[data-level='2'] {
+  background: var(--quiz-level-2);
+}
+
+.quiz__level[data-level='3'] {
+  background: var(--quiz-level-3);
+}
+
+.quiz__level:empty {
+  display: none;
+}
+
 .quiz__hint {
   margin: 0;
   font-size: var(--quiz-hint-size);
@@ -336,24 +359,30 @@
   outline-offset: var(--focus-ring);
 }
 
-/* 單字：一個字母一格，缺的那幾格是虛線框，現在要補的那一格框成橘色 */
+/*
+  單字：一個字母一格，缺的那幾格是虛線框，現在要補的那一格框成橘色。
+  一定排成一排：字母越多（--letters，play.js 填），每一格和間距就越小，最大是 --quiz-slot-size。
+*/
 .quiz__word {
+  --slot-gap: calc(var(--quiz-slot-gap) * min(1, 8 / var(--letters, 8)));
+  --slot: min(var(--quiz-slot-size), (100cqi - var(--slot-gap) * (var(--letters, 8) - 1)) / var(--letters, 8));
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: var(--quiz-slot-gap);
+  gap: var(--slot-gap);
   margin: 0;
+  container-type: inline-size;
 }
 
 .quiz__slot {
   display: grid;
+  flex: none;
   place-items: center;
-  width: var(--quiz-slot-size);
-  height: var(--quiz-slot-size);
+  width: var(--slot);
+  height: var(--slot);
   border: 1px solid var(--card-line);
   border-radius: calc(var(--radius) / 2);
   background: var(--quiz-blank);
-  font-size: var(--quiz-letter-size);
+  font-size: calc(var(--slot) * var(--quiz-letter-ratio));
   font-weight: var(--font-weight-bold);
   line-height: 1;
 }

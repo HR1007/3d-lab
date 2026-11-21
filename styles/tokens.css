@@ -384,11 +384,15 @@
 
   /* ---------- 小遊戲：英文填字（6-2）[需確認] ---------- */
 
-  --quiz-width: 400px; /* 最長的字有 7 個字母，一排要放得下 */
-  --quiz-slot-size: 44px; /* 單字的每一格 */
+  --quiz-width: 480px; /* 高級的字最長 14 個字母，格子會縮小排成一排；卡片放寬一點才不會太小 [需確認] */
+  --quiz-slot-size: 44px; /* 單字的每一格（最大值，字越長越小） */
   --quiz-slot-gap: 6px;
   --quiz-hint-size: 28px; /* 中文提示 */
-  --quiz-letter-size: 26px;
+  --quiz-letter-ratio: 0.6; /* 字母大小＝格子的六成 */
+  --quiz-level-1: var(--quiz-correct); /* 難度標籤：初級 */
+  --quiz-level-2: var(--quiz-current); /* 中級 */
+  --quiz-level-3: var(--quiz-wrong); /* 高級 */
+  --quiz-level-ink: var(--card-paper);
   --quiz-icon-size: 22px;
   --quiz-blank: #ffffff;
   --quiz-current: var(--front-awning-a); /* 現在要填的那一格 */

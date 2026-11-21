@@ -9,7 +9,7 @@
   🔊 用瀏覽器內建的語音合成（speechSynthesis），不支援的瀏覽器就不顯示按鈕。
 
   規則（已確認）：
-    - 每局 15 位顧客、15 個不重複的字（scripts/words.js）
+    - 每局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級，各從題庫隨機抽（scripts/words.js、Supabase）
     - 挖空：4 個字母以內挖 1 格、5–6 個挖 2 格、7 個以上挖 3 格；第一個字母不挖，留著當提示
     - 時間：每位顧客 30 秒＋每格 10 秒，小栗走路也算在時間裡；剩三成時時鐘晃動、顧客變著急
     - 點錯字母不扣時間，商品搖一下、顧客皺一下眉
@@ -22,7 +22,7 @@
 (function () {
   const game = document.querySelector('[data-game]');
   const Lab = window.Lab;
-  if (!game || !Lab.words || !Lab.letters) return;
+  if (!game || !Lab.wordBank || !Lab.letters) return;
 
   const shop = game.querySelector('.shop');
   const clerk = shop.querySelector('.shop__clerk');
@@ -32,6 +32,7 @@
 
   const quiz = $('[data-quiz]');
   const quizWho = $('[data-quiz-who]');
+  const quizLevel = $('[data-quiz-level]');
   const quizHint = $('[data-quiz-hint]');
   const quizWord = $('[data-quiz-word]');
   const quizMessage = $('[data-quiz-message]');
@@ -50,7 +51,9 @@
 
   // ---------- 規則 ----------
 
-  const ROUND = 15;
+  // 一局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級（題庫見 scripts/words.js）
+  const PER_LEVEL = 5;
+  const ROUND = PER_LEVEL * 3;
   const TIME_BASE = 30;
   const TIME_PER_BLANK = 10;
   const HURRY = 0.3;
@@ -214,6 +217,10 @@
 
   // ---------- 題目 ----------
 
+  // 單字和中文可以在 Supabase 後台改，放進 HTML 之前先把特殊字元換掉
+  const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  const escapeHTML = (text) => String(text).replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
   function makeQuestion(word) {
     const letters = [...word.en];
     const blanks = shuffle(letters.map((_, i) => i).slice(1))
@@ -223,6 +230,7 @@
   }
 
   function renderQuestion(q, finished) {
+    quizWord.style.setProperty('--letters', q.letters.length); // 字越長，每一格越小，一排放得下
     quizWord.innerHTML = q.letters
       .map((letter, i) => {
         const blankIndex = q.blanks.indexOf(i);
@@ -258,6 +266,8 @@
       let frownTimer = 0;
 
       quiz.removeAttribute('data-state');
+      quizLevel.textContent = Lab.wordBank.LEVELS[q.level];
+      quizLevel.dataset.level = q.level;
       quizWho.textContent = `${Lab.characters.names[who]}想要：`;
       quizHint.textContent = q.zh;
       quizMessage.textContent = '按「餅乾櫃」或「麵包架」，去找缺的字母。';
@@ -375,7 +385,7 @@
     await gate();
     if (id !== run) return false;
 
-    customer.insertAdjacentHTML('beforeend', `<div class="bubble bubble--hint"><span class="bubble__hint">${word.zh}</span></div>`);
+    customer.insertAdjacentHTML('beforeend', `<div class="bubble bubble--hint"><span class="bubble__hint">${escapeHTML(word.zh)}</span></div>`);
     const ok = await ask(word, who, customer, id);
     if (id !== run) return false;
 
@@ -417,9 +427,11 @@
 
   async function start() {
     const id = ++run;
+    const bank = await Lab.wordBank.ready; // 通常早就讀好了（開場、說明書的時間就夠）
+    if (id !== run) return;
     clearStage();
     setView('counter');
-    const words = shuffle(Lab.words).slice(0, ROUND);
+    const words = [1, 2, 3].flatMap((level) => shuffle(bank[level]).slice(0, PER_LEVEL).map((word) => ({ ...word, level })));
     const results = [];
     updateStatus(0, 0);
     status.hidden = false;
@@ -453,7 +465,7 @@
         (r) =>
           `<li class="result__item ${r.ok ? 'is-ok' : 'is-miss'}">` +
           `<span class="result__mark" aria-label="${r.ok ? '答對' : '沒答出來'}">${r.ok ? '✓' : '✗'}</span>` +
-          `<span class="result__en">${r.en}</span><span class="result__zh">${r.zh}</span>` +
+          `<span class="result__en">${escapeHTML(r.en)}</span><span class="result__zh">${escapeHTML(r.zh)}</span>` +
           (canSpeak ? `<button type="button" class="result__speak" data-say="${r.en}" aria-label="唸出 ${r.en}">${SPEAKER}</button>` : '') +
           `</li>`
       )
