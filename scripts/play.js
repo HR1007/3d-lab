@@ -8,11 +8,12 @@
   動畫照舊交給 CSS：走路是改擺放位置的 CSS 變數由 transition 補間，鏡頭是 data-camera，表情與紙袋是 data 屬性。
   🔊 用瀏覽器內建的語音合成（speechSynthesis），不支援的瀏覽器就不顯示按鈕。
 
-  規則（已確認）：
+  規則（2026-11-21 受訪者覺得太簡單，調難；數字都是 [需確認]）：
     - 每局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級，各從題庫隨機抽（scripts/words.js、Supabase）
-    - 挖空：4 個字母以內挖 1 格、5–6 個挖 2 格、7 個以上挖 3 格；第一個字母不挖，留著當提示
-    - 時間：每位顧客 30 秒＋每格 10 秒，小栗走路也算在時間裡；剩三成時時鐘晃動、顧客變著急
-    - 點錯字母不扣時間，商品搖一下、顧客皺一下眉
+    - 挖空：3–4 個字母挖 2 格、5–6 挖 3 格、7–8 挖 4 格、9 以上挖 5 格；優先挖母音、母音組合、重複字母、字尾的 e；
+      初級的第一個字母一定給，中級以上第一個字母也可能挖掉
+    - 時間：每位顧客 20 秒＋每格 8 秒，小栗走路也算在時間裡；剩三成時時鐘晃動、顧客變著急
+    - 點錯字母扣 3 秒：商品搖一下、顧客皺一下眉、時鐘閃一下
     - 星星：答對 13 題以上三顆、9 題以上兩顆、1 題以上一顆
   電腦也能直接按鍵盤字母（等於點那個商品）；Esc 打開或關上設定選單。
 
@@ -54,10 +55,12 @@
   // 一局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級（題庫見 scripts/words.js）
   const PER_LEVEL = 5;
   const ROUND = PER_LEVEL * 3;
-  const TIME_BASE = 30;
-  const TIME_PER_BLANK = 10;
+  const TIME_BASE = 20; // 每題 20 秒＋每個空格 8 秒 [需確認]
+  const TIME_PER_BLANK = 8;
+  const WRONG_PENALTY = 3; // 點錯扣 3 秒 [需確認]
   const HURRY = 0.3;
-  const blanksFor = (length) => (length <= 4 ? 1 : length <= 6 ? 2 : 3);
+  // 3–4 個字母挖 2 格、5–6 挖 3 格、7–8 挖 4 格、9 以上挖 5 格，至少留一個字母
+  const blanksFor = (length) => Math.min(length - 1, length <= 4 ? 2 : length <= 6 ? 3 : length <= 8 ? 4 : 5);
   const starsFor = (correct) => (correct >= 13 ? 3 : correct >= 9 ? 2 : correct >= 1 ? 1 : 0);
 
   // 顧客從麵包架旁淡入、走到櫃台左前方，結帳完走回去淡出（門在鏡頭背後，從那裡進來會貼著鏡頭冒出來）
@@ -221,10 +224,30 @@
   const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   const escapeHTML = (text) => String(text).replace(/[&<>"']/g, (c) => ESCAPES[c]);
 
+  // 挖哪幾格：優先挖容易拼錯的地方——母音、母音組合（ea、ie、ou）、重複字母（ll、pp）、字尾不發音的 e；
+  // 每格再加一點隨機，同一個字每次挖的地方不一樣。初級第一個字母一定給，中級以上第一個字母也可能挖掉。
+  const VOWELS = 'aeiou';
+  const tricky = (letters, i) => {
+    const [prev, letter, next] = [letters[i - 1], letters[i], letters[i + 1]];
+    const vowel = VOWELS.includes(letter);
+    let score = Math.random();
+    if (vowel) score += 1;
+    if (vowel && (VOWELS.includes(prev) || VOWELS.includes(next))) score += 1;
+    if (letter === prev || letter === next) score += 1;
+    if (letter === 'e' && i === letters.length - 1) score += 0.5;
+    return score;
+  };
+
   function makeQuestion(word) {
     const letters = [...word.en];
-    const blanks = shuffle(letters.map((_, i) => i).slice(1))
+    const from = word.level === 1 ? 1 : 0;
+    const blanks = letters
+      .map((_, i) => i)
+      .slice(from)
+      .map((i) => ({ i, score: tricky(letters, i) }))
+      .sort((a, b) => b.score - a.score)
       .slice(0, blanksFor(letters.length))
+      .map(({ i }) => i)
       .sort((a, b) => a - b);
     return { ...word, letters, blanks, cursor: 0 };
   }
@@ -313,11 +336,15 @@
           if (!item) return;
           const answer = q.letters[q.blanks[q.cursor]];
           if (letter !== answer) {
-            // 點錯：商品搖一下、顧客皺眉，不扣時間
+            // 點錯：商品搖一下、顧客皺眉、時鐘閃一下扣 3 秒
             item.el.classList.remove('is-wrong');
             void item.el.offsetWidth;
             item.el.classList.add('is-wrong');
-            quizMessage.textContent = `這是 ${letter}，不是缺的那個字母喔。`;
+            elapsed += WRONG_PENALTY * 1000;
+            clock.classList.remove('is-penalty');
+            void clock.offsetWidth;
+            clock.classList.add('is-penalty');
+            quizMessage.textContent = `這是 ${letter}，不是缺的那個字母喔。扣 ${WRONG_PENALTY} 秒。`;
             customer.dataset.expression = 'flustered';
             clearTimeout(frownTimer);
             frownTimer = setTimeout(() => {
@@ -339,6 +366,11 @@
       };
     });
   }
+
+  // 扣時間的閃一下結束就拿掉，不然會蓋住「時間快到」的晃動
+  clock.addEventListener('animationend', (event) => {
+    if (event.animationName === 'clock-penalty') clock.classList.remove('is-penalty');
+  });
 
   // 點商品（滑鼠、手指，或鍵盤在商品上按 Enter）
   shop.addEventListener('click', (event) => {

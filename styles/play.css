@@ -201,6 +201,19 @@
   animation: clock-shake var(--clock-shake-duration) ease-in-out infinite;
 }
 
+/* 點錯扣時間：時鐘閃紅一下 */
+.hud__clock.is-penalty {
+  animation: clock-penalty var(--play-shake-duration) ease-out;
+}
+
+@keyframes clock-penalty {
+  from {
+    background: var(--quiz-wrong);
+    color: var(--card-paper);
+    scale: var(--clock-penalty-scale);
+  }
+}
+
 @keyframes clock-shake {
   0%,
   100% {

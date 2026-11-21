@@ -424,6 +424,7 @@
   /* 右上角的時鐘與設定、暫停選單、開始前的倒數 */
   --clock-width: 104px;
   --clock-shake-duration: 500ms;
+  --clock-penalty-scale: 1.15; /* 點錯扣時間時，時鐘放大閃一下 */
   --pause-backdrop: rgba(42, 30, 22, 0.55);
   --pause-width: 280px;
   --countdown-size: 120px;
