@@ -165,7 +165,8 @@
   gap: var(--sp-1);
 }
 
-.hud[hidden] {
+/* 時鐘和設定只在營業中出現；音樂按鈕一直都在 */
+.hud[data-playing='false'] :is(.hud__clock, .hud__gear) {
   display: none;
 }
 
@@ -188,7 +189,7 @@
 }
 
 .hud__clock svg,
-.hud__gear svg {
+.hud__button svg {
   width: var(--quiz-icon-size);
   height: var(--quiz-icon-size);
 }
@@ -213,7 +214,7 @@
   }
 }
 
-.hud__gear {
+.hud__button {
   display: grid;
   place-items: center;
   width: var(--game-button-height);
@@ -227,11 +228,17 @@
   cursor: pointer;
 }
 
-.hud__gear:hover {
+.hud__button:hover {
   background: var(--card-line);
 }
 
-.hud__gear:focus-visible {
+/* 音樂按鈕：開著時是音符，關掉時加一條斜線 */
+.hud__button[aria-pressed='true'] .hud__music-off,
+.hud__button[aria-pressed='false'] .hud__music-on {
+  display: none;
+}
+
+.hud__button:focus-visible {
   outline: var(--focus-ring) solid var(--card-ink);
   outline-offset: var(--focus-ring);
 }

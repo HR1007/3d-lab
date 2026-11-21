@@ -423,7 +423,7 @@
     const results = [];
     updateStatus(0, 0);
     status.hidden = false;
-    hud.hidden = false;
+    hud.dataset.playing = 'true';
     setClock(TIME_BASE, false);
     await wait(durationOf(shop));
     await runCountdown(id);
@@ -459,7 +459,7 @@
       )
       .join('');
     status.textContent = `營業結束・答對 ${correct}／${ROUND} 題`;
-    hud.hidden = true;
+    hud.dataset.playing = 'false';
     result.hidden = false;
     result.querySelector('[data-play-again]').focus({ preventScroll: true });
   }
@@ -525,7 +525,7 @@
     run++;
     if (paused) resume();
     clearStage();
-    hud.hidden = true;
+    hud.dataset.playing = 'false';
     delete game.dataset.view;
   });
 })();

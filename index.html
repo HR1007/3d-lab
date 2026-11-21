@@ -30,6 +30,7 @@
     <script src="scripts/game.js" defer></script>
     <script src="scripts/book.js" defer></script>
     <script src="scripts/play.js" defer></script>
+    <script src="scripts/music.js" defer></script>
   </head>
   <body>
     <main class="app">
@@ -42,15 +43,23 @@
 
         <p class="game__status" data-game-status hidden>營業中</p>
 
-        <!-- 右上角：倒數時鐘、設定 -->
-        <div class="hud" data-hud hidden>
+        <!-- 右上角：音樂開關（一直都在）、倒數時鐘與設定（營業中才出現）-->
+        <div class="hud" data-hud data-playing="false">
+          <button type="button" class="hud__button" data-music-toggle aria-pressed="true" aria-label="音樂">
+            <svg class="hud__music-on" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
+              <path d="M9 17 V5 L19 3 V15" /><circle cx="6.5" cy="17" r="2.5" style="fill: currentColor" /><circle cx="16.5" cy="15" r="2.5" style="fill: currentColor" />
+            </svg>
+            <svg class="hud__music-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
+              <path d="M9 17 V5 L19 3 V15" /><circle cx="6.5" cy="17" r="2.5" style="fill: currentColor" /><circle cx="16.5" cy="15" r="2.5" style="fill: currentColor" /><path d="M3 3 L21 21" />
+            </svg>
+          </button>
           <p class="hud__clock" data-clock data-hurry="false" role="timer" aria-label="剩下的時間">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round">
               <circle cx="12" cy="13" r="8" /><path d="M12 9 V13 L15 15 M9 2.5 H15" />
             </svg>
             <span data-clock-time>0:30</span>
           </p>
-          <button type="button" class="hud__gear" data-pause-open aria-label="設定（暫停遊戲）">
+          <button type="button" class="hud__button hud__gear" data-pause-open aria-label="設定（暫停遊戲）">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
               <circle cx="12" cy="12" r="3" />
               <path d="M12 2.5 V5 M12 19 V21.5 M2.5 12 H5 M19 12 H21.5 M5.3 5.3 L7.1 7.1 M16.9 16.9 L18.7 18.7 M5.3 18.7 L7.1 16.9 M16.9 7.1 L18.7 5.3" />
