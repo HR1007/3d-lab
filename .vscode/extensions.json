@@ -1,0 +1,4 @@
+{
+  // 打開這個資料夾時，VS Code 會建議安裝 Live Server：右下角按「Go Live」就能在瀏覽器預覽，存檔後自動重新整理
+  "recommendations": ["ritwickdey.LiveServer"]
+}

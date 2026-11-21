@@ -10,6 +10,14 @@
 直接雙擊 `index.html` 就能玩，不需要安裝或 build。
 想用本機伺服器也可以：`python3 -m http.server 4317`，再開 http://127.0.0.1:4317/。
 
+### 用 VS Code 打開
+
+1. VS Code →「檔案 → 開啟資料夾…」選 `3d-lab` 這個資料夾（或在終端機打 `code ~/claude_figma/3d-lab`）。
+2. 第一次打開，右下角會建議安裝 **Live Server**（設定在 `.vscode/extensions.json`），按安裝。
+3. 右下角狀態列按「Go Live」，瀏覽器就會打開遊戲；之後改了檔案存檔，頁面會自動重新整理。
+
+要改哪裡：顏色、尺寸、動畫時間都在 `styles/tokens.css`；單字表在 `scripts/words.js`；背景音樂的樂譜在 `scripts/music.js` 上半段（`CHORDS` 和弦、`MELODY` 旋律、`BPM` 速度）。
+
 ## 玩法
 
 1. 店門口：點店門，門往店裡轉開，鏡頭走進店裡。
