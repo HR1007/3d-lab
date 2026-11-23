@@ -1,0 +1,495 @@
+/*
+  設定視窗與記事本（scripts/settings.js、scripts/notebook.js）。
+    .settings          設定視窗；data-mode="lobby" 從主畫面打開（只有「完成」），
+                       data-mode="play" 營業中按齒輪（暫停：繼續、重新開始、遊戲說明、回到主畫面）
+    .slider            拉桿：麵團色的軌道，拉過的那段是圍裙橘（--fill，JS 填），把手是一片巧克力豆餅乾
+    .slider__ticks     拉桿下面的刻度文字，現在選的那一格變粗（.is-current）
+    .notebook          記事本：上面一條封邊和一排線圈，橫線筆記紙、左邊一條紅色邊線，一個單字一行
+*/
+
+/* ---------- 設定視窗 ---------- */
+
+.settings {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  padding: var(--sp-2);
+  overflow: hidden auto;
+  background: var(--settings-backdrop);
+}
+
+.settings[hidden] {
+  display: none;
+}
+
+.settings__panel {
+  display: grid;
+  gap: var(--sp-2);
+  width: min(var(--settings-width), 100%);
+  margin: auto;
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+}
+
+.settings__title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.settings__group {
+  display: grid;
+  gap: calc(var(--sp-1) / 2);
+}
+
+.settings__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-1);
+}
+
+.settings__label {
+  font-weight: var(--font-weight-bold);
+}
+
+.settings__value {
+  padding: 0 var(--sp-1);
+  border-radius: var(--radius-pill);
+  background: var(--slider-fill);
+  color: var(--card-paper);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+}
+
+.settings__hint,
+.settings__note {
+  margin: 0;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  line-height: 1.5;
+}
+
+/* 記事本按鈕：一整條，左邊是筆記本圖示 */
+.settings__notebook {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--game-button-height);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--card-line);
+  border-radius: calc(var(--radius) / 2);
+  background: var(--notebook-paper);
+  color: var(--card-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.settings__notebook:hover {
+  background: var(--lobby-link-hover);
+}
+
+.settings__notebook:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+.settings__notebook svg {
+  flex: none;
+  width: var(--quiz-icon-size);
+  height: var(--quiz-icon-size);
+  color: var(--notebook-band);
+}
+
+.settings__notebook-text {
+  display: grid;
+}
+
+.settings__notebook-title {
+  font-weight: var(--font-weight-bold);
+}
+
+.settings__notebook-count {
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+}
+
+/* 底下的按鈕：主畫面只有「完成」；營業中是「繼續」一整條，下面三顆 */
+.settings__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--sp-1) * 1.5);
+}
+
+.settings__actions--lobby {
+  grid-template-columns: 1fr;
+}
+
+.settings[data-mode='lobby'] .settings__actions--play,
+.settings[data-mode='play'] .settings__actions--lobby {
+  display: none;
+}
+
+.settings__note,
+.settings__resume,
+.settings__wide {
+  grid-column: 1 / -1;
+}
+
+/* ---------- 拉桿 ---------- */
+
+/*
+  原生的 <input type="range">：整條高 44（手指按得到），裡面的軌道細一點。
+  Chrome／Safari 用 ::-webkit-*，Firefox 用 ::-moz-*，兩邊寫一樣的樣子。
+*/
+.slider {
+  --fill: 50%;
+  width: 100%;
+  height: var(--game-button-height);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.slider:focus {
+  outline: none;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: var(--slider-track);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--slider-fill) var(--fill), var(--slider-track-bg) var(--fill));
+}
+
+.slider::-moz-range-track {
+  height: var(--slider-track);
+  border-radius: var(--radius-pill);
+  background: var(--slider-track-bg);
+}
+
+.slider::-moz-range-progress {
+  height: var(--slider-track);
+  border-radius: var(--radius-pill);
+  background: var(--slider-fill);
+}
+
+/* 把手：一片巧克力豆餅乾（三顆巧克力豆是三個放射漸層） */
+.slider::-webkit-slider-thumb {
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  margin-top: calc((var(--slider-track) - var(--slider-thumb)) / 2);
+  border: var(--slider-thumb-border) solid var(--slider-thumb-edge);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 36%, var(--slider-thumb-chip) 11%, transparent 12%),
+    radial-gradient(circle at 66% 44%, var(--slider-thumb-chip) 9%, transparent 10%),
+    radial-gradient(circle at 46% 70%, var(--slider-thumb-chip) 10%, transparent 11%),
+    var(--slider-thumb-dough);
+  box-shadow: var(--card-shadow);
+  transition: scale var(--motion-fast) var(--motion-ease);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  border: var(--slider-thumb-border) solid var(--slider-thumb-edge);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 36%, var(--slider-thumb-chip) 11%, transparent 12%),
+    radial-gradient(circle at 66% 44%, var(--slider-thumb-chip) 9%, transparent 10%),
+    radial-gradient(circle at 46% 70%, var(--slider-thumb-chip) 10%, transparent 11%),
+    var(--slider-thumb-dough);
+  box-shadow: var(--card-shadow);
+}
+
+.slider:hover::-webkit-slider-thumb,
+.slider:active::-webkit-slider-thumb {
+  scale: 1.1;
+}
+
+.slider:focus-visible::-webkit-slider-thumb {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+.slider:focus-visible::-moz-range-thumb {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+/* 刻度：第 i 個字放在把手走到第 i 格時的正中間（把手中心從 半個把手 走到 100% − 半個把手） */
+.slider__ticks {
+  position: relative;
+  height: 1.5em;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+}
+
+.slider__ticks span {
+  position: absolute;
+  top: 0;
+  left: calc(var(--slider-thumb) / 2 + (100% - var(--slider-thumb)) * var(--i) / (var(--n) - 1));
+  translate: -50% 0;
+  white-space: nowrap;
+}
+
+.slider__ticks span:first-child {
+  translate: calc(var(--slider-thumb) / -2) 0;
+}
+
+.slider__ticks span:last-child {
+  translate: calc(-100% + var(--slider-thumb) / 2) 0;
+}
+
+.slider__ticks .is-current {
+  color: var(--card-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---------- 記事本 ---------- */
+
+.notebook {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  padding: var(--sp-2);
+  background: var(--settings-backdrop);
+}
+
+.notebook[hidden] {
+  display: none;
+}
+
+/* 筆記本本體：上面一條封邊、封邊下一排線圈（一排圓點），整本在畫面裡放得下，清單自己捲 */
+.notebook__pad {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: var(--sp-1);
+  width: min(var(--notebook-width), 100%);
+  max-height: 100%;
+  margin: auto;
+  padding: calc(var(--notebook-band-height) + var(--sp-2)) var(--sp-3) var(--sp-2);
+  overflow: hidden;
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle, var(--notebook-ring) 30%, transparent 32%) 0 calc(var(--notebook-band-height) - var(--notebook-ring-gap) / 2) /
+      var(--notebook-ring-gap) var(--notebook-ring-gap) repeat-x,
+    linear-gradient(var(--notebook-band), var(--notebook-band)) 0 0 / 100% var(--notebook-band-height) no-repeat,
+    var(--notebook-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+}
+
+.notebook__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.notebook__title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.notebook__summary {
+  margin: 0;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+}
+
+.notebook__filters {
+  display: flex;
+  gap: var(--sp-1);
+}
+
+.notebook__filter {
+  min-height: var(--card-button-size);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--card-ink);
+  font: inherit;
+  font-size: var(--font-size-meta);
+  cursor: pointer;
+}
+
+.notebook__filter[aria-pressed='true'] {
+  border-color: var(--game-button-bg);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+.notebook__filter:focus-visible,
+.notebook__clear:focus-visible,
+.notebook__speak:focus-visible {
+  outline: var(--focus-ring) solid var(--card-ink);
+  outline-offset: var(--focus-ring);
+}
+
+/* 清單：橫線筆記紙，一行一個字；紅色邊線左邊放等級 */
+.notebook__list {
+  min-height: calc(var(--notebook-row) * 3);
+  margin: 0 calc(var(--sp-3) * -1);
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  background:
+    linear-gradient(90deg, transparent calc(var(--notebook-margin) - 1px), var(--notebook-margin-line) 0, var(--notebook-margin-line) calc(var(--notebook-margin) + 1px), transparent 0),
+    repeating-linear-gradient(transparent 0, transparent calc(var(--notebook-row) - 1px), var(--notebook-rule) calc(var(--notebook-row) - 1px), var(--notebook-rule) var(--notebook-row));
+  background-attachment: local;
+}
+
+.notebook__list[hidden] {
+  display: none;
+}
+
+.notebook__item {
+  display: grid;
+  grid-template-columns: var(--notebook-margin) auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--sp-1);
+  height: var(--notebook-row);
+  padding-right: var(--sp-2);
+}
+
+.notebook__level {
+  justify-self: center;
+  padding: 0 calc(var(--sp-1) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--quiz-level-1);
+  color: var(--quiz-level-ink);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.5;
+}
+
+.notebook__level[data-level='2'] {
+  background: var(--quiz-level-2);
+}
+
+.notebook__level[data-level='3'] {
+  background: var(--quiz-level-3);
+}
+
+.notebook__en {
+  padding-left: var(--sp-1);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.notebook__zh {
+  overflow: hidden;
+  color: var(--card-muted);
+  font-size: var(--font-size-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notebook__tally {
+  display: flex;
+  gap: var(--sp-1);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.notebook__right {
+  color: var(--quiz-correct);
+}
+
+.notebook__wrong {
+  color: var(--quiz-wrong);
+}
+
+.notebook__speak {
+  display: grid;
+  place-items: center;
+  width: var(--result-speak-size);
+  height: var(--result-speak-size);
+  padding: 0;
+  border: 1px solid var(--card-line);
+  border-radius: 50%;
+  background: var(--notebook-paper);
+  color: var(--card-ink);
+  cursor: pointer;
+}
+
+.notebook__speak:hover {
+  background: var(--card-line);
+}
+
+.notebook__speak svg {
+  width: var(--quiz-icon-size);
+  height: var(--quiz-icon-size);
+}
+
+.notebook__empty {
+  margin: 0;
+  padding: var(--sp-3) 0;
+  color: var(--card-muted);
+  text-align: center;
+}
+
+.notebook__empty[hidden] {
+  display: none;
+}
+
+.notebook__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notebook__clear {
+  min-height: var(--card-button-size);
+  padding: 0 var(--sp-1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--card-muted);
+  font: inherit;
+  font-size: var(--font-size-meta);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+
+.notebook__clear[hidden] {
+  display: none;
+}
+
+/* 按第一次：變成紅底提醒，3 秒內再按一次才真的清掉 */
+.notebook__clear.is-armed {
+  background: var(--quiz-wrong);
+  color: var(--card-paper);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .notebook__item {
+    grid-template-columns: var(--notebook-margin) auto minmax(0, 1fr) auto;
+  }
+
+  /* 手機版一行放不下：答對、答錯次數收起來，只留等級、英文、中文和 🔊 */
+  .notebook__tally {
+    display: none;
+  }
+}

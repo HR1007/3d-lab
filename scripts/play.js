@@ -1,23 +1,26 @@
 /*
   小遊戲本體：英文單字填空，字母就是店裡的餅乾和麵包。
-  說明書最後一頁按「開始遊戲」→ 3、2、1 倒數 → 15 位顧客輪流走到櫃台前，每位帶一個挖空的英文單字（附中文提示）。
+  主畫面按「開始遊戲」→ 3、2、1 倒數 → 顧客輪流走到櫃台前，每位帶一個挖空的英文單字（附中文提示）。
   玩家按「餅乾櫃 a–m」或「麵包架 n–z」轉過去，點缺的那個字母的商品，小栗就走過去拿回櫃台補上；
-  整個字補完，顧客拿著紙袋開心離開；時間到就公布答案。最後顯示成績和 15 個單字複習。
+  整個字補完，顧客拿著紙袋開心離開；時間到就公布答案。每一題都記進記事本（scripts/notebook.js）。
+  最後顯示成績和這一局的單字複習。
 
   為什麼需要 JS：出題、倒數、判斷對錯、記分、暫停，以及顧客、小栗、鏡頭一步接一步的順序。
   動畫照舊交給 CSS：走路是改擺放位置的 CSS 變數由 transition 補間，鏡頭是 data-camera，表情與紙袋是 data 屬性。
-  🔊 用瀏覽器內建的語音合成（speechSynthesis），不支援的瀏覽器就不顯示按鈕。
+  🔊 用瀏覽器內建的語音合成（Lab.wordBank.speak），不支援的瀏覽器就不顯示按鈕。
 
   規則（2026-11-21 受訪者覺得太簡單，調難；數字都是 [需確認]）：
-    - 每局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級，各從題庫隨機抽（scripts/words.js、Supabase）
+    - 一局幾位顧客、出哪幾個等級由設定的拉桿決定（scripts/settings.js），預設 15 位：前 5 位初級、中間 5 位中級、
+      最後 5 位高級，各從題庫隨機抽（scripts/words.js、Supabase）
     - 挖空：3–4 個字母挖 2 格、5–6 挖 3 格、7–8 挖 4 格、9 以上挖 5 格；優先挖母音、母音組合、重複字母、字尾的 e；
       初級的第一個字母一定給，中級以上第一個字母也可能挖掉
-    - 時間：每位顧客 20 秒＋每格 8 秒，小栗走路也算在時間裡；剩三成時時鐘晃動、顧客變著急
-    - 點錯字母扣 3 秒：商品搖一下、顧客皺一下眉、時鐘閃一下
-    - 星星：答對 13 題以上三顆、9 題以上兩顆、1 題以上一顆
-  電腦也能直接按鍵盤字母（等於點那個商品）；Esc 打開或關上設定選單。
+    - 時間：每位顧客 20 秒＋每格 8 秒，小栗走路也算在時間裡。右上角的鬧鐘：鐘面色塊是剩下的時間，
+      過半變橘；剩三成變紅、鈴鐺晃、兩邊冒震動線條、顧客變著急；最後 5 秒整顆跟著震
+    - 點錯字母扣 3 秒：商品搖一下、顧客皺一下眉、時鐘閃一下、飄出「−3 秒」
+    - 星星：答對 85% 以上三顆、60% 以上兩顆、1 題以上一顆（15 題就是 13、9、1 題）
+  電腦也能直接按鍵盤字母（等於點那個商品）；Esc 打開或關上設定選單（暫停）。
 
-  載入順序：words.js → letters.js → game.js → book.js → 這支
+  載入順序：words.js → letters.js → settings.js → notebook.js → game.js → book.js → 這支
 */
 
 (function () {
@@ -42,7 +45,8 @@
   const hud = $('[data-hud]');
   const clock = $('[data-clock]');
   const clockTime = $('[data-clock-time]');
-  const pauseMenu = $('[data-pause]');
+  const clockPenalty = $('[data-clock-penalty]');
+  const pauseMenu = $('[data-settings]');
   const countdown = $('[data-countdown]');
 
   const result = $('[data-result]');
@@ -52,16 +56,17 @@
 
   // ---------- 規則 ----------
 
-  // 一局 15 位顧客：前 5 位初級、中間 5 位中級、最後 5 位高級（題庫見 scripts/words.js）
-  const PER_LEVEL = 5;
-  const ROUND = PER_LEVEL * 3;
+  // 一局幾位顧客、各是什麼等級：設定的拉桿決定（scripts/settings.js）；讀不到設定就用原本的 5 + 5 + 5
+  const DEFAULT_PLAN = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3];
   const TIME_BASE = 20; // 每題 20 秒＋每個空格 8 秒 [需確認]
   const TIME_PER_BLANK = 8;
   const WRONG_PENALTY = 3; // 點錯扣 3 秒 [需確認]
-  const HURRY = 0.3;
+  const HALF = 0.5; // 鬧鐘的色塊從綠變橘
+  const HURRY = 0.3; // 變紅、鈴鐺晃、顧客著急
+  const FINAL = 5; // 最後 5 秒整顆鬧鐘跟著震
   // 3–4 個字母挖 2 格、5–6 挖 3 格、7–8 挖 4 格、9 以上挖 5 格，至少留一個字母
   const blanksFor = (length) => Math.min(length - 1, length <= 4 ? 2 : length <= 6 ? 3 : length <= 8 ? 4 : 5);
-  const starsFor = (correct) => (correct >= 13 ? 3 : correct >= 9 ? 2 : correct >= 1 ? 1 : 0);
+  const starsFor = (correct, total) => (correct >= total * 0.85 ? 3 : correct >= total * 0.6 ? 2 : correct >= 1 ? 1 : 0);
 
   // 顧客從麵包架旁淡入、走到櫃台左前方，結帳完走回去淡出（門在鏡頭背後，從那裡進來會貼著鏡頭冒出來）
   const ENTRANCE = { x: 1060, z: -640 };
@@ -95,15 +100,7 @@
     return a;
   };
 
-  const canSpeak = 'speechSynthesis' in window;
-  function speak(text) {
-    if (!canSpeak) return;
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.85;
-    speechSynthesis.speak(utterance);
-  }
+  const { canSpeak, speak } = Lab.wordBank;
 
   // ---------- 暫停：時間停住、流程停在下一步之前，按繼續才往下 ----------
 
@@ -272,11 +269,14 @@
   let run = 0;
   let current = null; // 目前這一題：{ q, pick(letter) }
 
-  function setClock(seconds, hurry) {
+  // left：還剩幾成（0–1），鐘面的色塊照這個畫；data-time 決定鬧鐘現在多急
+  function setClock(seconds, left = 1) {
     const s = Math.max(0, Math.ceil(seconds));
     clockTime.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-    clock.dataset.hurry = String(hurry);
+    clock.style.setProperty('--left', Math.max(0, Math.min(1, left)).toFixed(4));
+    clock.dataset.time = left <= 0 ? 'plenty' : seconds <= FINAL ? 'final' : left < HURRY ? 'hurry' : left < HALF ? 'half' : 'plenty';
   }
+  const hurrying = () => clock.dataset.time === 'hurry' || clock.dataset.time === 'final';
 
   // 出一題，等字母補齊或時間到；答對回傳 true
   function ask(word, who, customer, id) {
@@ -296,7 +296,7 @@
       quizMessage.textContent = '按「餅乾櫃」或「麵包架」，去找缺的字母。';
       renderQuestion(q, false);
       quiz.hidden = false;
-      setClock(total / 1000, false);
+      setClock(total / 1000, 1);
       $('[data-go="cookie"]').focus({ preventScroll: true });
 
       const finish = (ok) => {
@@ -307,7 +307,7 @@
         quiz.dataset.state = ok ? 'correct' : 'timeout';
         renderQuestion(q, true);
         quizMessage.textContent = ok ? `答對了！${q.en}，${q.zh}。` : `時間到！答案是 ${q.en}（${q.zh}）。`;
-        clock.dataset.hurry = 'false';
+        clock.dataset.time = 'plenty';
         speak(q.en);
         resolve(ok);
       };
@@ -317,9 +317,8 @@
         if (!paused) elapsed += now - last;
         last = now;
         const left = Math.max(0, 1 - elapsed / total);
-        const hurry = left < HURRY;
-        setClock((total - elapsed) / 1000, hurry);
-        if (hurry) customer.dataset.expression = 'flustered';
+        setClock((total - elapsed) / 1000, left);
+        if (left < HURRY) customer.dataset.expression = 'flustered';
         if (left <= 0) {
           finish(false);
           return;
@@ -336,19 +335,21 @@
           if (!item) return;
           const answer = q.letters[q.blanks[q.cursor]];
           if (letter !== answer) {
-            // 點錯：商品搖一下、顧客皺眉、時鐘閃一下扣 3 秒
+            // 點錯：商品搖一下、顧客皺眉、時鐘閃一下、飄出「−3 秒」
             item.el.classList.remove('is-wrong');
             void item.el.offsetWidth;
             item.el.classList.add('is-wrong');
             elapsed += WRONG_PENALTY * 1000;
             clock.classList.remove('is-penalty');
+            clockPenalty.classList.remove('is-shown');
             void clock.offsetWidth;
             clock.classList.add('is-penalty');
+            clockPenalty.classList.add('is-shown');
             quizMessage.textContent = `這是 ${letter}，不是缺的那個字母喔。扣 ${WRONG_PENALTY} 秒。`;
             customer.dataset.expression = 'flustered';
             clearTimeout(frownTimer);
             frownTimer = setTimeout(() => {
-              if (clock.dataset.hurry !== 'true') customer.dataset.expression = 'normal';
+              if (!hurrying()) customer.dataset.expression = 'normal';
             }, tokenMs('--play-frown-duration'));
             return;
           }
@@ -368,8 +369,10 @@
   }
 
   // 扣時間的閃一下結束就拿掉，不然會蓋住「時間快到」的晃動
+  clockPenalty.textContent = `−${WRONG_PENALTY} 秒`;
   clock.addEventListener('animationend', (event) => {
     if (event.animationName === 'clock-penalty') clock.classList.remove('is-penalty');
+    if (event.animationName === 'clock-penalty-float') clockPenalty.classList.remove('is-shown');
   });
 
   // 點商品（滑鼠、手指，或鍵盤在商品上按 Enter）
@@ -420,6 +423,7 @@
     customer.insertAdjacentHTML('beforeend', `<div class="bubble bubble--hint"><span class="bubble__hint">${escapeHTML(word.zh)}</span></div>`);
     const ok = await ask(word, who, customer, id);
     if (id !== run) return false;
+    Lab.notebook?.record(word, ok);
 
     setView('counter');
     customer.dataset.bubble = 'none';
@@ -440,8 +444,8 @@
 
   // ---------- 一局 ----------
 
-  function updateStatus(served, correct) {
-    status.textContent = `第 ${Math.min(served + 1, ROUND)}／${ROUND} 位・答對 ${correct} 題`;
+  function updateStatus(served, correct, total) {
+    status.textContent = `第 ${Math.min(served + 1, total)}／${total} 位・答對 ${correct} 題`;
   }
 
   async function runCountdown(id) {
@@ -462,14 +466,24 @@
     const bank = await Lab.wordBank.ready; // 通常早就讀好了（開場、說明書的時間就夠）
     if (id !== run) return;
     clearStage();
+    // 主畫面已經把鏡頭轉到櫃台前了；從成績頁「再玩一次」、暫停選單「重新開始」也一樣，就不用等鏡頭
+    const moving = shop.dataset.camera !== CAMERAS.counter;
     setView('counter');
-    const words = [1, 2, 3].flatMap((level) => shuffle(bank[level]).slice(0, PER_LEVEL).map((word) => ({ ...word, level })));
+    // 照設定的順序出題（由易到難），每個等級各自洗牌抽，同一局不會重複；某個等級的字不夠就少出幾題
+    const pools = { 1: shuffle(bank[1]), 2: shuffle(bank[2]), 3: shuffle(bank[3]) };
+    const plan = Lab.settings?.plan() ?? DEFAULT_PLAN;
+    const words = plan
+      .map((level) => {
+        const word = pools[level].pop();
+        return word && { ...word, level };
+      })
+      .filter(Boolean);
     const results = [];
-    updateStatus(0, 0);
+    updateStatus(0, 0, words.length);
     status.hidden = false;
-    hud.dataset.playing = 'true';
-    setClock(TIME_BASE, false);
-    await wait(durationOf(shop));
+    hud.dataset.mode = 'play';
+    setClock(TIME_BASE, 1);
+    if (moving) await wait(durationOf(shop));
     await runCountdown(id);
 
     for (const word of words) {
@@ -477,7 +491,7 @@
       const ok = await serve(word, id);
       if (id !== run) return;
       results.push({ ...word, ok });
-      updateStatus(results.length, results.filter((r) => r.ok).length);
+      updateStatus(results.length, results.filter((r) => r.ok).length, words.length);
     }
     showResult(results);
   }
@@ -488,10 +502,11 @@
 
   function showResult(results) {
     const correct = results.filter((r) => r.ok).length;
-    const stars = starsFor(correct);
+    const total = results.length;
+    const stars = starsFor(correct, total);
     resultStars.innerHTML = [0, 1, 2].map((i) => `<span class="${i < stars ? 'is-on' : ''}">★</span>`).join('');
     resultStars.setAttribute('aria-label', `${stars} 顆星`);
-    resultScore.textContent = `${ROUND} 位顧客裡，你幫 ${correct} 位拼對了單字。`;
+    resultScore.textContent = `${total} 位顧客裡，你幫 ${correct} 位拼對了單字。`;
     resultList.innerHTML = results
       .map(
         (r) =>
@@ -502,8 +517,8 @@
           `</li>`
       )
       .join('');
-    status.textContent = `營業結束・答對 ${correct}／${ROUND} 題`;
-    hud.dataset.playing = 'false';
+    status.textContent = `營業結束・答對 ${correct}／${total} 題`;
+    hud.dataset.mode = 'idle';
     result.hidden = false;
     result.querySelector('[data-play-again]').focus({ preventScroll: true });
   }
@@ -514,41 +529,38 @@
   });
   result.querySelector('[data-play-again]').addEventListener('click', start);
 
-  // ---------- 設定選單：繼續、重新開始、遊戲說明、回到主畫面 ----------
+  // ---------- 設定選單（暫停）：拉桿、記事本，加上繼續、重新開始、遊戲說明、回到主畫面 ----------
+  // 設定視窗本身在 scripts/settings.js；「回到主畫面」由 scripts/game.js 接
 
   function openPause() {
     if (paused || game.dataset.phase !== 'open' || !result.hidden) return;
     paused = true;
     game.dataset.paused = 'true';
-    pauseMenu.hidden = false;
+    Lab.settings.open('play');
     if (canSpeak) speechSynthesis.cancel();
-    pauseMenu.querySelector('[data-pause-resume]').focus({ preventScroll: true });
   }
 
   function resume() {
     if (!paused) return;
     paused = false;
     delete game.dataset.paused;
-    pauseMenu.hidden = true;
+    Lab.settings.close();
     Lab.book?.close();
     const waiters = resumeWaiters;
     resumeWaiters = [];
     waiters.forEach((resolve) => resolve());
   }
 
-  $('[data-pause-open]').addEventListener('click', openPause);
+  $('[data-hud] [data-settings-open]').addEventListener('click', openPause);
   pauseMenu.querySelector('[data-pause-resume]').addEventListener('click', resume);
   pauseMenu.querySelector('[data-pause-restart]').addEventListener('click', () => {
     resume();
     start();
   });
-  // 遊戲說明：打開說明書，看完按「回到遊戲」回到設定選單
+  // 遊戲說明：打開說明書，看完按「回到遊戲」回到設定選單（還是暫停中）
   pauseMenu.querySelector('[data-pause-howto]').addEventListener('click', () => {
-    pauseMenu.hidden = true;
-    Lab.book.open('resume', () => {
-      pauseMenu.hidden = false;
-      pauseMenu.querySelector('[data-pause-resume]').focus({ preventScroll: true });
-    });
+    Lab.settings.close();
+    Lab.book.open('resume', () => Lab.settings.open('play'));
   });
 
   // ---------- 開始與重來 ----------
@@ -569,7 +581,7 @@
     run++;
     if (paused) resume();
     clearStage();
-    hud.dataset.playing = 'false';
+    hud.dataset.mode = 'idle';
     delete game.dataset.view;
   });
 })();

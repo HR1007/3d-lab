@@ -421,15 +421,85 @@
   --letter-icing-line: var(--case-wood-deep);
   --letter-hover: #fff1b8;
 
-  /* 右上角的時鐘與設定、暫停選單、開始前的倒數 */
-  --clock-width: 104px;
-  --clock-shake-duration: 500ms;
+  /*
+    右上角的鬧鐘：鐘面的色塊是剩下的時間（綠 → 過半變橘 → 剩三成變紅）。
+    剩三成時整顆變紅、鈴鐺左右晃、兩邊冒出震動線條；最後 5 秒整顆跟著震。[需確認]
+  */
+  --hud-gap: var(--sp-2); /* 右上角每顆之間空一點，不要黏在一起 */
+  --hud-button-size: var(--clock-height); /* 音樂、齒輪跟鬧鐘一樣高 */
+  --hud-icon-size: 26px;
+  --hud-border: 3px;
+  --hud-depth: 5px; /* 按鈕底下那一截厚度（跟開始遊戲同一種做法），按下去就壓平 */
+  --hud-edge: var(--lobby-start-edge);
+  --clock-edge: #d9c2a3; /* 鬧鐘底下的厚度 */
+  --clock-hurry-edge: #8c1f29;
+  --clock-width: 168px;
+  --clock-height: 56px;
+  --clock-icon-size: 40px;
+  --clock-time-size: 28px;
+  --clock-face: #ffffff;
+  --clock-pie-plenty: var(--quiz-correct);
+  --clock-pie-half: var(--quiz-current);
+  --clock-pie-hurry: var(--quiz-wrong);
+  --clock-glow: rgba(200, 50, 60, 0.45); /* 時間快到時外面一圈一直往外擴的紅光 */
+  --clock-glow-size: 10px;
+  --clock-ring-duration: 120ms; /* 鈴鐺往一邊晃一次 */
+  --clock-ring-angle: 14deg;
+  --clock-buzz-duration: 320ms; /* 震動線條閃一次 */
+  --clock-pulse-duration: 1000ms; /* 數字每秒跳一下、紅光擴一次 */
+  --clock-pulse-scale: 1.18;
+  --clock-jitter: 2px; /* 最後 5 秒整顆鬧鐘的抖動幅度 */
+  --clock-jitter-duration: 90ms;
   --clock-penalty-scale: 1.15; /* 點錯扣時間時，時鐘放大閃一下 */
-  --pause-backdrop: rgba(42, 30, 22, 0.55);
-  --pause-width: 280px;
+  --clock-penalty-float: 900ms; /* 「−3 秒」從時鐘下面飄出來 */
   --countdown-size: 120px;
   --countdown-step: 800ms;
   --countdown-shadow: rgba(58, 42, 30, 0.45);
+
+  /* 主畫面：說明書看完（或跳過）停在這裡，中間一顆大大的「開始遊戲」[需確認] */
+  --lobby-scrim: rgba(42, 30, 22, 0.28); /* 整個舞台暗一點，中間的字才看得清楚 */
+  --lobby-vignette: rgba(42, 30, 22, 0.62); /* 四周再更暗 */
+  --lobby-title-size: 40px;
+  --lobby-start-height: 96px;
+  --lobby-start-font: 36px;
+  --lobby-start-icon: 40px;
+  --lobby-start-depth: 8px; /* 按鈕底下那一截厚度，按下去就壓平 */
+  --lobby-start-edge: #4f321f;
+  --lobby-start-glow: rgba(42, 30, 22, 0.35);
+  --lobby-halo: rgba(255, 244, 226, 0.85); /* 待機時一圈一圈往外擴的光 */
+  --lobby-halo-spread: 24px;
+  --lobby-halo-duration: 1800ms;
+  --lobby-breathe-scale: 1.04;
+  --lobby-launch-duration: 800ms; /* 按下去之後：壓扁、彈開、碎成字母餅乾和星星，再開始 3、2、1 */
+  --lobby-spark-size: 40px;
+  --lobby-burst-x: 260px; /* 碎片飛多遠（橫向比較遠，跟按鈕的形狀一樣扁） */
+  --lobby-burst-y: 170px;
+  --lobby-ring-width: 4px;
+  --lobby-link-hover: #f3e6d3;
+
+  /* 設定視窗（遊戲中也是暫停選單）：拉桿的軌道是麵團色、拉過的部分是圍裙橘，把手是一片巧克力豆餅乾 */
+  --settings-backdrop: rgba(42, 30, 22, 0.55);
+  --settings-width: 400px;
+  --slider-track: 12px;
+  --slider-thumb: 36px;
+  --slider-track-bg: #ecdcc6;
+  --slider-fill: var(--hh-apron);
+  --slider-thumb-dough: var(--cookie-dough);
+  --slider-thumb-chip: var(--cookie-chip);
+  --slider-thumb-edge: var(--cookie-edge);
+  --slider-thumb-border: 3px;
+
+  /* 記事本：橫線筆記紙、左邊一條紅色邊線，上面一排線圈 */
+  --notebook-width: 560px;
+  --notebook-paper: #fffdf6;
+  --notebook-band: var(--shop-lamp-shade);
+  --notebook-band-height: 28px;
+  --notebook-ring: #c9c2b8;
+  --notebook-ring-gap: 28px;
+  --notebook-rule: rgba(96, 140, 190, 0.32);
+  --notebook-margin-line: rgba(200, 50, 60, 0.45);
+  --notebook-margin: 48px; /* 紅色邊線離左邊多遠 */
+  --notebook-row: 52px; /* 一行的高度＝橫線的間距 */
 
   /* 遊戲說明書：木頭書皮、紙頁、一圈縫線 */
   --book-width: 760px;
@@ -441,8 +511,11 @@
   --book-stitch-inset: 10px;
   --book-spine: rgba(58, 42, 30, 0.14);
   --book-backdrop: rgba(42, 30, 22, 0.35);
-  --book-flip-duration: 420ms;
-  --book-flip-perspective: 1200px;
+  /* 翻頁：右半頁掀起來、翻過書背蓋到左邊（手機版是整頁往左翻走）[需確認] */
+  --book-flip-duration: 720ms;
+  --book-flip-ease: cubic-bezier(0.45, 0.05, 0.3, 1);
+  --book-flip-perspective: 2400px;
+  --book-flip-shade: rgba(58, 42, 30, 0.32); /* 紙翻到一半時背光那一面的陰影 */
 }
 
 /* 斷點沿用作品集的三個：375 / 768 / 1200 */
@@ -455,6 +528,20 @@
     --font-size-h1: 28px;
     --game-view-height: 100svh; /* 手機版撐滿整個螢幕 */
     --countdown-size: 88px;
+    --hud-gap: var(--sp-1);
+    --hud-icon-size: 22px;
+    --hud-depth: 4px;
+    --clock-width: 120px;
+    --clock-height: 48px;
+    --clock-icon-size: 32px;
+    --clock-time-size: 22px;
+    --lobby-title-size: 28px;
+    --lobby-start-height: 80px;
+    --lobby-start-font: 28px;
+    --lobby-start-icon: 32px;
+    --lobby-burst-x: 170px;
+    --lobby-burst-y: 150px;
+    --notebook-margin: 36px;
   }
 }
 

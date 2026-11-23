@@ -200,6 +200,11 @@
 
 /* 手機版：舞台撐滿整個螢幕（styles/page.css）；店外的鏡頭站近一點 */
 @media (max-width: 767px) {
+  /* 右上角的鬧鐘一排就快佔滿寬度了，狀態移到下面一行，不要疊在一起 */
+  .game__status {
+    top: calc(var(--sp-2) + var(--clock-height) + var(--hud-depth) + var(--sp-1));
+  }
+
   .shop[data-camera='street'] {
     --cam-y: 380;
     --cam-z: 1250;

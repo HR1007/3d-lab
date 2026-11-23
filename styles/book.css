@@ -2,16 +2,20 @@
   遊戲說明書（scripts/book.js）：像一本攤開的小書。
     .book__cover  木頭色的書皮
     .book__paper  紙頁，往內一點有一圈虛線當縫線；桌面版是左右兩頁的跨頁（左邊截圖、右邊說明，中間有書背的陰影）
-    .book__page   一頁的內容，翻頁時繞著書背轉一下（.book[data-turn]）
+    .book__pages  所有頁疊在同一格（沒翻到的頁只是看不見），書的高度＝最高的那一頁，翻頁時不會忽大忽小
+    .book__page   一頁的內容
+    .book__flip   翻頁時蓋在紙上的一層（scripts/book.js 放進來、翻完就拿掉），裡面是「翻起來的那張紙」.book__leaf：
+                  正面是翻之前的那半頁、背面是翻過去之後的那半頁，繞著書背轉 180°
 */
 
+/* 矮螢幕（手機橫放）放不下整本書時捲的是背景這一層，書皮本身不捲，翻起來的紙才不會被書皮裁掉 */
 .book {
   position: absolute;
   inset: 0;
   z-index: 4;
   display: grid;
-  place-items: center;
   padding: var(--sp-2);
+  overflow: hidden auto;
   background: var(--book-backdrop);
 }
 
@@ -20,9 +24,9 @@
 }
 
 .book__cover {
+  position: relative;
   width: min(var(--book-width), 100%);
-  max-height: 100%;
-  overflow: auto;
+  margin: auto; /* 置中；比背景高的時候從頂端開始排，不會被切掉 */
   padding: var(--book-cover-edge);
   border-radius: var(--radius);
   background: var(--book-cover);
@@ -73,15 +77,23 @@
   color: var(--card-ink);
 }
 
-.book__page {
+.book__pages {
   display: grid;
-  grid-template-columns: minmax(0, 1fr); /* 截圖的原始寬度很大，不能讓它把頁面撐開 */
-  gap: var(--sp-1);
-  transform-origin: 0 50%;
+  grid-template-columns: minmax(0, 1fr);
 }
 
+.book__page {
+  display: grid;
+  grid-area: 1 / 1;
+  grid-template-columns: minmax(0, 1fr); /* 截圖的原始寬度很大，不能讓它把頁面撐開 */
+  align-content: start;
+  gap: var(--sp-1);
+}
+
+/* 沒翻到的頁還是佔著位置（撐出最高的那一頁），只是看不見、讀螢幕的軟體也不會讀 */
 .book__page[hidden] {
-  display: none;
+  display: grid;
+  visibility: hidden;
 }
 
 .book__shot {
@@ -127,26 +139,209 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 翻頁：新的一頁從書背那一側轉進來 */
-.book[data-turn='forward'] .book__page:not([hidden]) {
-  animation: book-turn-forward var(--book-flip-duration) var(--motion-ease);
+/*
+  翻頁。.book__flip 蓋在紙上、大小跟紙一樣，裡面的 .book__paper 都是 scripts/book.js 複製的「照片」：
+    .book__flip-under  翻之前那一頁還沒被蓋到的半邊（往後翻時是右半邊、往前翻時是左半邊），等紙翻過來才蓋掉
+    .book__leaf        翻起來的那張紙，繞著書背轉 180°；正面、背面各放半頁（data-show 決定是左半還是右半）
+  底下真正的書已經換成新的一頁，紙翻起來時就露出新的那半頁。
+  手機版只有一頁：往前翻是舊的整頁往左翻走，往後翻是上一頁從左邊翻回來蓋住。
+*/
+.book__flip {
+  position: absolute;
+  inset: var(--book-cover-edge);
+  z-index: 1;
+  perspective: var(--book-flip-perspective);
+  pointer-events: none;
 }
 
-.book[data-turn='back'] .book__page:not([hidden]) {
-  animation: book-turn-back var(--book-flip-duration) var(--motion-ease);
+.book__flip .book__paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes book-turn-forward {
+.book__flip-under,
+.book__leaf-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.book__flip-under[data-show='left'] {
+  clip-path: inset(0 50% 0 0);
+}
+
+.book__flip-under[data-show='right'] {
+  clip-path: inset(0 0 0 50%);
+}
+
+.book__leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  animation: var(--book-flip-duration) var(--book-flip-ease) both;
+}
+
+.book__leaf-face {
+  backface-visibility: hidden;
+  border-radius: calc(var(--radius) / 2);
+}
+
+.book__leaf-face--back {
+  transform: rotateY(180deg);
+}
+
+/* 半頁：裡面放一整頁寬的照片，往左挪半頁就是右半邊 */
+.book__leaf-face[data-show] > .book__paper {
+  width: 200%;
+}
+
+.book__leaf-face[data-show='right'] > .book__paper {
+  left: -100%;
+}
+
+/* 背光的陰影：紙越立起來越暗，靠書背那一側最暗（--shade-from 是書背在哪一邊） */
+.book__leaf-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--shade-from), var(--book-flip-shade), transparent 75%);
+  opacity: 0;
+  animation: book-shade-front var(--book-flip-duration) var(--book-flip-ease) both;
+}
+
+.book__leaf-face--back::after {
+  animation-name: book-shade-back;
+}
+
+/* 往前翻（下一頁）：右半頁繞著左邊的書背翻到左邊 */
+.book__flip[data-turn='forward'] .book__leaf {
+  left: 50%;
+  transform-origin: 0 50%;
+  animation-name: book-leaf-forward;
+}
+
+.book__flip[data-turn='forward'] .book__leaf-face {
+  --shade-from: 90deg;
+}
+
+.book__flip[data-turn='forward'] .book__leaf-face--back {
+  --shade-from: 270deg;
+}
+
+/* 往後翻（上一頁）：左半頁繞著右邊的書背翻回右邊 */
+.book__flip[data-turn='back'] .book__leaf {
+  left: 0;
+  transform-origin: 100% 50%;
+  animation-name: book-leaf-back;
+}
+
+.book__flip[data-turn='back'] .book__leaf-face {
+  --shade-from: 270deg;
+}
+
+.book__flip[data-turn='back'] .book__leaf-face--back {
+  --shade-from: 90deg;
+}
+
+/* 手機版：整頁繞著左邊翻 */
+.book__flip[data-layout='single'] .book__leaf {
+  left: 0;
+  width: 100%;
+  transform-origin: 0 50%;
+}
+
+.book__flip[data-layout='single'] .book__leaf-face {
+  --shade-from: 90deg;
+}
+
+.book__flip[data-layout='single'][data-turn='forward'] .book__leaf {
+  animation-name: book-leaf-away;
+}
+
+.book__flip[data-layout='single'][data-turn='back'] .book__leaf {
+  animation-name: book-leaf-return;
+}
+
+.book__flip[data-layout='single'][data-turn='back'] .book__leaf-face::after {
+  animation-name: book-shade-return;
+}
+
+@keyframes book-leaf-forward {
   from {
-    opacity: 0;
-    transform: perspective(var(--book-flip-perspective)) rotateY(-35deg);
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-180deg);
   }
 }
 
-@keyframes book-turn-back {
+@keyframes book-leaf-back {
   from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+
+@keyframes book-leaf-away {
+  from {
+    transform: rotateY(0deg);
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(-100deg);
     opacity: 0;
-    transform: perspective(var(--book-flip-perspective)) rotateY(35deg);
+  }
+}
+
+@keyframes book-leaf-return {
+  from {
+    transform: rotateY(-100deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(0deg);
+  }
+}
+
+/* 正面：從平放到立起來（翻到一半）越來越暗 */
+@keyframes book-shade-front {
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 背面：翻過一半才看得到，從暗慢慢變亮、平平蓋下來 */
+@keyframes book-shade-back {
+  from,
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes book-shade-return {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -177,7 +372,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .book[data-turn] .book__page:not([hidden]) {
-    animation: none;
+  .book__flip {
+    display: none;
   }
 }

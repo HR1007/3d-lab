@@ -1,0 +1,349 @@
+/*
+  主畫面（scripts/game.js）：說明書看完或跳過之後停在這裡，按下中間的大按鈕才開始 3、2、1。
+    .lobby          蓋滿舞台的一層，四周暗一點，視線集中在中間
+    .lobby__start   大大的「開始遊戲」：底下有一截厚度（box-shadow），按下去整顆往下壓平；
+                    待機時輕輕呼吸，外面一圈一圈的光往外擴
+    .lobby__burst   按下去之後從按鈕中心飛出去的字母餅乾、星星和兩圈光環（JS 產生，每片的方向寫在 --dx / --dy）
+  .lobby.is-launching：按下去的那一下（--lobby-launch-duration），按鈕彈開消失、其他東西淡掉，之後才開始營業。
+*/
+
+.lobby {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* 右上角的音樂、齒輪（z-index 2）疊在上面，照樣按得到 */
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  background: radial-gradient(ellipse at center, var(--lobby-scrim) 20%, var(--lobby-vignette) 100%);
+  text-align: center;
+}
+
+.lobby[hidden] {
+  display: none;
+}
+
+.lobby:not([hidden]) {
+  animation: lobby-in var(--motion-fast) var(--motion-ease);
+}
+
+.lobby__title {
+  margin: 0;
+  color: var(--card-paper);
+  font-size: var(--lobby-title-size);
+  font-weight: var(--font-weight-black);
+  line-height: 1.2;
+  text-shadow: 0 var(--focus-ring) var(--sp-3) var(--countdown-shadow);
+}
+
+/* 放按鈕和碎片的盒子：碎片從這裡的正中間飛出去 */
+.lobby__launch {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.lobby__start {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--lobby-start-height);
+  padding: 0 var(--sp-5) 0 var(--sp-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  box-shadow:
+    0 var(--lobby-start-depth) 0 var(--lobby-start-edge),
+    0 calc(var(--lobby-start-depth) + var(--sp-2)) var(--sp-5) var(--lobby-start-glow);
+  font: inherit;
+  font-size: var(--lobby-start-font);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  animation: lobby-breathe var(--lobby-halo-duration) ease-in-out infinite;
+  transition:
+    translate var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.lobby__start svg {
+  width: var(--lobby-start-icon);
+  height: var(--lobby-start-icon);
+  color: var(--game-button-ink);
+}
+
+.lobby__start-play {
+  fill: var(--game-button-bg);
+}
+
+/* 待機：外面一圈光一直往外擴、淡掉，提醒「按這裡」 */
+.lobby__start::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: calc(var(--focus-ring) * 2) solid var(--lobby-halo);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: lobby-halo var(--lobby-halo-duration) ease-out infinite;
+}
+
+.lobby__start:hover {
+  background: var(--game-button-hover);
+  translate: 0 calc(var(--focus-ring) * -1);
+}
+
+/* 按下去：整顆往下壓，底下的厚度不見 */
+.lobby__start:active {
+  translate: 0 var(--lobby-start-depth);
+  box-shadow:
+    0 0 0 var(--lobby-start-edge),
+    0 var(--sp-1) var(--sp-3) var(--lobby-start-glow);
+}
+
+.lobby__start:focus-visible {
+  outline: calc(var(--focus-ring) * 2) solid var(--card-paper);
+  outline-offset: calc(var(--focus-ring) * 3);
+}
+
+/* 現在的難度、單字量 */
+.lobby__summary {
+  margin: 0;
+  padding: calc(var(--sp-1) / 2) var(--sp-2);
+  border-radius: var(--radius-pill);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 遊戲說明、設定、回到店門口：每顆都有圖示，之間空大一點；也有底下一截厚度，按下去壓平 */
+.lobby__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.lobby__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--game-button-height);
+  padding: 0 var(--sp-3) 0 var(--sp-2);
+  border: var(--hud-border) solid var(--game-button-bg);
+  border-radius: var(--radius-pill);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow:
+    0 var(--hud-depth) 0 var(--hud-edge),
+    var(--card-shadow);
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition:
+    translate var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.lobby__link svg {
+  width: var(--quiz-icon-size);
+  height: var(--quiz-icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lobby__link:hover {
+  background: var(--lobby-link-hover);
+  translate: 0 calc(var(--focus-ring) * -1);
+}
+
+.lobby__link:active {
+  translate: 0 var(--hud-depth);
+  box-shadow:
+    0 0 0 var(--hud-edge),
+    var(--card-shadow);
+}
+
+.lobby__link:focus-visible {
+  outline: var(--focus-ring) solid var(--card-paper);
+  outline-offset: var(--focus-ring);
+}
+
+/* ---------- 按下開始遊戲 ---------- */
+
+.lobby__burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* 按鈕：壓扁 → 彈大 → 消失；底下的厚度跟著壓平 */
+.lobby.is-launching .lobby__start {
+  box-shadow: none;
+  pointer-events: none;
+  animation: lobby-launch var(--lobby-launch-duration) var(--motion-ease) forwards;
+}
+
+.lobby.is-launching .lobby__start::before {
+  animation: none;
+  opacity: 0;
+}
+
+.lobby.is-launching :is(.lobby__title, .lobby__summary, .lobby__links) {
+  animation: lobby-fade var(--lobby-launch-duration) var(--motion-ease) forwards;
+}
+
+.lobby.is-launching {
+  animation: lobby-out var(--lobby-launch-duration) ease-in forwards;
+}
+
+/* 光環：從按鈕的大小往外擴兩圈 */
+.lobby__ring {
+  position: absolute;
+  top: calc(var(--lobby-start-height) / -2);
+  left: calc(var(--lobby-start-height) * -1.5);
+  width: calc(var(--lobby-start-height) * 3);
+  height: var(--lobby-start-height);
+  border: var(--lobby-ring-width) solid var(--lobby-halo);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  animation: lobby-ring var(--lobby-launch-duration) var(--motion-ease) forwards;
+}
+
+.lobby__ring--late {
+  animation-delay: calc(var(--lobby-launch-duration) * 0.15);
+}
+
+/* 碎片：字母餅乾（跟小栗頭上帶回來的字母同一種樣子）和星星 */
+.lobby__spark {
+  position: absolute;
+  top: calc(var(--lobby-spark-size) / -2);
+  left: calc(var(--lobby-spark-size) / -2);
+  display: grid;
+  place-items: center;
+  width: var(--lobby-spark-size);
+  height: var(--lobby-spark-size);
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  opacity: 0;
+  animation: lobby-spark var(--lobby-launch-duration) var(--motion-ease) forwards;
+  animation-delay: calc(var(--delay) * var(--lobby-launch-duration));
+}
+
+.lobby__spark--letter {
+  border: var(--focus-ring) solid var(--letter-icing-line);
+  border-radius: 50%;
+  background: var(--letter-cookie);
+  color: var(--letter-icing-line);
+  font-size: calc(var(--lobby-spark-size) * 0.55);
+}
+
+.lobby__spark--star {
+  color: var(--quiz-star);
+  font-size: var(--lobby-spark-size);
+  text-shadow: 0 var(--focus-ring) var(--sp-1) var(--countdown-shadow);
+}
+
+@keyframes lobby-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lobby-breathe {
+  50% {
+    scale: var(--lobby-breathe-scale);
+  }
+}
+
+@keyframes lobby-halo {
+  from {
+    inset: 0;
+    opacity: 1;
+  }
+  to {
+    inset: calc(var(--lobby-halo-spread) * -1);
+    opacity: 0;
+  }
+}
+
+@keyframes lobby-launch {
+  0% {
+    translate: 0 var(--lobby-start-depth);
+    scale: 1 0.86;
+  }
+  22% {
+    translate: 0 0;
+    scale: 1.14;
+    opacity: 1;
+  }
+  100% {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+
+@keyframes lobby-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 四周的暗角在最後才淡掉，碎片飛的時候還看得清楚 */
+@keyframes lobby-out {
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes lobby-ring {
+  from {
+    opacity: 1;
+    scale: 0.7;
+  }
+  to {
+    opacity: 0;
+    scale: 1.8 2.6;
+  }
+}
+
+@keyframes lobby-spark {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    scale: 0.3;
+    rotate: 0deg;
+  }
+  75% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    translate: calc(var(--dx) * var(--lobby-burst-x)) calc(var(--dy) * var(--lobby-burst-y));
+    scale: 1;
+    rotate: var(--spin);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby:not([hidden]),
+  .lobby__start,
+  .lobby__start::before {
+    animation: none;
+  }
+}

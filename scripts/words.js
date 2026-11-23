@@ -15,6 +15,7 @@
   提供：Lab.wordBank.ready → Promise，解析成 { 1: [{ en, zh }], 2: [...], 3: [...] }
         Lab.wordBank.source → 'supabase' 或 'local'（實際用的是哪一份）
         Lab.wordBank.LEVELS → 等級名稱
+        Lab.wordBank.speak(text)、Lab.wordBank.canSpeak → 唸出英文單字（題目卡、成績、記事本的 🔊 共用）
 */
 
 (function () {
@@ -185,7 +186,18 @@
     return words.map((w) => ({ en: w.en, zh: w.zh.trim() }));
   }
 
-  const bank = { LEVELS, source: 'local', ready: null };
+  // 🔊 用瀏覽器內建的語音合成（speechSynthesis），不支援的瀏覽器就不顯示按鈕
+  const canSpeak = 'speechSynthesis' in window;
+  function speak(text) {
+    if (!canSpeak) return;
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.85;
+    speechSynthesis.speak(utterance);
+  }
+
+  const bank = { LEVELS, source: 'local', ready: null, canSpeak, speak };
 
   bank.ready = (async () => {
     if (location.protocol === 'file:') return local;

@@ -3,7 +3,8 @@
     .letter-item     寫著字母的商品（展示櫃頂上的餅乾 a–m、麵包架上的麵包 n–z，scripts/letters.js）
     .game__customer  走進店裡的顧客；.bubble--hint 是頭上寫中文提示的泡泡
     .quiz            題目卡：中文提示、挖空的單字、去餅乾櫃／麵包架／回櫃台的按鈕
-    .hud             右上角的倒數時鐘與設定；.pause 是設定選單；.countdown 是開始前的 3、2、1
+    .hud             右上角的鬧鐘倒數（.alarm）與設定齒輪；.countdown 是開始前的 3、2、1
+                     （設定視窗、記事本在 styles/settings.css，主畫面在 styles/lobby.css）
     .result          一局結束的成績
   .game[data-view] 是現在看哪裡：counter 櫃台、cookie 餅乾櫃、bread 麵包架。
 */
@@ -153,7 +154,7 @@
   }
 }
 
-/* ---------- 右上角：時鐘與設定 ---------- */
+/* ---------- 右上角：鬧鐘與設定 ---------- */
 
 .hud {
   position: absolute;
@@ -162,48 +163,199 @@
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--sp-1);
+  gap: var(--hud-gap);
 }
 
-/* 時鐘和設定只在營業中出現；音樂按鈕一直都在 */
-.hud[data-playing='false'] :is(.hud__clock, .hud__gear) {
+/* 鬧鐘只在營業中出現，齒輪在主畫面和營業中出現；音樂按鈕一直都在 */
+.hud:not([data-mode='play']) .hud__clock,
+.hud[data-mode='idle'] .hud__gear {
   display: none;
 }
 
+/*
+  鬧鐘：一顆大大的膠囊，左邊是鬧鐘、右邊是剩下的秒數。深木頭色的粗外框、底下一截厚度，跟旁邊的按鈕一樣有份量。
+  --left（0–1，scripts/play.js 每一格畫面更新）＝鐘面上色塊的大小；--pie 是色塊的顏色，越急越紅。
+*/
 .hud__clock {
+  --left: 1;
+  --pie: var(--clock-pie-plenty);
+  --edge: var(--clock-edge);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--sp-1) / 2);
+  gap: var(--sp-2); /* 鬧鐘右邊的震動線條要有地方放，不要碰到數字 */
   min-width: var(--clock-width);
-  height: var(--game-button-height);
+  height: var(--clock-height);
   margin: 0;
-  padding: 0 var(--sp-2);
+  padding: 0 var(--sp-3) 0 var(--sp-2);
+  border: var(--hud-border) solid var(--game-button-bg);
   border-radius: var(--radius-pill);
   background: var(--card-paper);
   color: var(--card-ink);
-  box-shadow: var(--card-shadow);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-bold);
+  box-shadow:
+    0 var(--hud-depth) 0 var(--edge),
+    var(--card-shadow);
+  font-size: var(--clock-time-size);
+  font-weight: var(--font-weight-black);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
 }
 
-.hud__clock svg,
-.hud__button svg {
-  width: var(--quiz-icon-size);
-  height: var(--quiz-icon-size);
+.hud__clock[data-time='half'] {
+  --pie: var(--clock-pie-half);
 }
 
-/* 時間快到：變紅、一直晃 */
-.hud__clock[data-hurry='true'] {
+.hud__time {
+  display: inline-block;
+}
+
+/* 鬧鐘本體：鐘面（HTML，畫剩下的時間）疊在 SVG 的鈴鐺、外框、指針底下 */
+.alarm {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--clock-icon-size);
+  height: var(--clock-icon-size);
+}
+
+.alarm__shake {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 85%;
+}
+
+/* 鐘面在 viewBox 48 裡是圓心 (24, 27)、半徑 14 */
+.alarm__face {
+  position: absolute;
+  top: calc(13 / 48 * 100%);
+  left: calc(10 / 48 * 100%);
+  width: calc(28 / 48 * 100%);
+  height: calc(28 / 48 * 100%);
+  border-radius: 50%;
+  background: conic-gradient(var(--pie) calc(var(--left) * 1turn), var(--clock-face) 0);
+}
+
+.alarm__body,
+.alarm__buzz {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.alarm__bell,
+.alarm__knob {
+  fill: currentColor;
+}
+
+.alarm__rim,
+.alarm__line,
+.alarm__buzz path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+
+.alarm__rim {
+  stroke-width: 3;
+}
+
+.alarm__line {
+  stroke-width: 3;
+}
+
+.alarm__hands {
+  stroke-width: 2.5;
+}
+
+/* 震動線條：平常看不見 */
+.alarm__buzz {
+  opacity: 0;
+}
+
+.alarm__buzz path {
+  stroke-width: 3;
+}
+
+.alarm__buzz-side {
+  transform-box: fill-box;
+}
+
+/* ---------- 時間快到（剩三成）：整顆變紅、外面一圈紅光、鈴鐺左右晃、兩邊冒震動線條、數字每秒跳一下 ---------- */
+
+.hud__clock:is([data-time='hurry'], [data-time='final']) {
+  --pie: var(--clock-pie-hurry);
+  --edge: var(--clock-hurry-edge);
+  border-color: var(--clock-hurry-edge);
   background: var(--quiz-wrong);
   color: var(--card-paper);
-  animation: clock-shake var(--clock-shake-duration) ease-in-out infinite;
+  animation: clock-glow var(--clock-pulse-duration) ease-out infinite;
 }
 
-/* 點錯扣時間：時鐘閃紅一下 */
+.hud__clock:is([data-time='hurry'], [data-time='final']) .alarm__shake {
+  animation: alarm-ring var(--clock-ring-duration) linear infinite alternate;
+}
+
+.hud__clock:is([data-time='hurry'], [data-time='final']) .alarm__buzz {
+  opacity: 1;
+}
+
+.hud__clock:is([data-time='hurry'], [data-time='final']) .alarm__buzz-side--left {
+  animation: alarm-buzz-left var(--clock-buzz-duration) ease-out infinite;
+}
+
+.hud__clock:is([data-time='hurry'], [data-time='final']) .alarm__buzz-side--right {
+  animation: alarm-buzz-right var(--clock-buzz-duration) ease-out infinite;
+}
+
+.hud__clock:is([data-time='hurry'], [data-time='final']) .hud__time {
+  animation: clock-tick var(--clock-pulse-duration) ease-out infinite;
+}
+
+/* 最後 5 秒：整顆鬧鐘跟著震，鈴鐺晃得更快 */
+.hud__clock[data-time='final'] {
+  animation:
+    clock-glow var(--clock-pulse-duration) ease-out infinite,
+    clock-jitter var(--clock-jitter-duration) linear infinite;
+}
+
+.hud__clock[data-time='final'] .alarm__shake {
+  animation-duration: calc(var(--clock-ring-duration) / 2);
+}
+
+.hud__clock[data-time='final'] :is(.alarm__buzz-side--left, .alarm__buzz-side--right) {
+  animation-duration: calc(var(--clock-buzz-duration) / 2);
+}
+
+/* 點錯扣時間：時鐘閃紅一下（蓋過上面的晃動，閃完 scripts/play.js 就把 class 拿掉） */
 .hud__clock.is-penalty {
   animation: clock-penalty var(--play-shake-duration) ease-out;
+}
+
+/* 「−3 秒」從時鐘下面冒出來、往下飄、淡掉 */
+.hud__penalty {
+  position: absolute;
+  top: 100%;
+  right: var(--sp-2);
+  margin-top: var(--sp-1);
+  padding: calc(var(--sp-1) / 2) var(--sp-1);
+  border-radius: var(--radius-pill);
+  background: var(--quiz-wrong);
+  color: var(--card-paper);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-black);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud__penalty.is-shown {
+  animation: clock-penalty-float var(--clock-penalty-float) var(--motion-ease);
 }
 
 @keyframes clock-penalty {
@@ -214,35 +366,142 @@
   }
 }
 
-@keyframes clock-shake {
-  0%,
-  100% {
-    rotate: 0deg;
+@keyframes clock-penalty-float {
+  from {
+    opacity: 0;
+    translate: 0 calc(var(--sp-1) * -1);
+    scale: 0.6;
   }
-  25% {
-    rotate: -6deg;
+  20% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1.1;
   }
-  75% {
-    rotate: 6deg;
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    translate: 0 var(--sp-2);
+    scale: 1;
   }
 }
 
+@keyframes clock-glow {
+  from {
+    box-shadow:
+      0 var(--hud-depth) 0 var(--edge),
+      var(--card-shadow),
+      0 0 0 0 var(--clock-glow);
+  }
+  to {
+    box-shadow:
+      0 var(--hud-depth) 0 var(--edge),
+      var(--card-shadow),
+      0 0 0 var(--clock-glow-size) transparent;
+  }
+}
+
+@keyframes alarm-ring {
+  from {
+    rotate: calc(var(--clock-ring-angle) * -1);
+  }
+  to {
+    rotate: var(--clock-ring-angle);
+  }
+}
+
+/* 線條一閃一閃往外推：左邊往左、右邊往右，兩邊錯開半拍 */
+@keyframes alarm-buzz-left {
+  from {
+    opacity: 1;
+    translate: 20% 0;
+  }
+  to {
+    opacity: 0.15;
+    translate: -30% 0;
+  }
+}
+
+@keyframes alarm-buzz-right {
+  0% {
+    opacity: 0.15;
+    translate: 30% 0;
+  }
+  50% {
+    opacity: 1;
+    translate: -20% 0;
+  }
+  100% {
+    opacity: 0.15;
+    translate: 30% 0;
+  }
+}
+
+@keyframes clock-tick {
+  from {
+    scale: var(--clock-pulse-scale);
+  }
+  40% {
+    scale: 1;
+  }
+}
+
+@keyframes clock-jitter {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: calc(var(--clock-jitter) * -1) 0;
+  }
+  75% {
+    translate: var(--clock-jitter) 0;
+  }
+}
+
+/* 音樂、齒輪：實心的深木頭圓鈕、奶油色圖示，底下一截厚度；按下去整顆往下壓平 */
 .hud__button {
   display: grid;
+  flex: none;
   place-items: center;
-  width: var(--game-button-height);
-  height: var(--game-button-height);
+  width: var(--hud-button-size);
+  height: var(--hud-button-size);
   padding: 0;
-  border: 0;
+  border: var(--hud-border) solid var(--game-button-ink);
   border-radius: 50%;
-  background: var(--card-paper);
-  color: var(--card-ink);
-  box-shadow: var(--card-shadow);
+  background: var(--game-button-bg);
+  color: var(--game-button-ink);
+  box-shadow:
+    0 var(--hud-depth) 0 var(--hud-edge),
+    var(--card-shadow);
   cursor: pointer;
+  transition:
+    translate var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.hud__button svg {
+  width: var(--hud-icon-size);
+  height: var(--hud-icon-size);
 }
 
 .hud__button:hover {
-  background: var(--card-line);
+  background: var(--game-button-hover);
+  translate: 0 calc(var(--focus-ring) * -1);
+}
+
+.hud__button:active {
+  translate: 0 var(--hud-depth);
+  box-shadow:
+    0 0 0 var(--hud-edge),
+    var(--card-shadow);
+}
+
+/* 音樂關掉時淡一點，一眼看得出是關的 */
+.hud__button[aria-pressed='false'] {
+  background: var(--card-muted);
 }
 
 /* 音樂按鈕：開著時是音符，關掉時加一條斜線 */
@@ -252,7 +511,7 @@
 }
 
 .hud__button:focus-visible {
-  outline: var(--focus-ring) solid var(--card-ink);
+  outline: var(--focus-ring) solid var(--card-paper);
   outline-offset: var(--focus-ring);
 }
 
@@ -497,39 +756,6 @@
   }
 }
 
-/* ---------- 設定選單 ---------- */
-
-.pause {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  background: var(--pause-backdrop);
-}
-
-.pause[hidden] {
-  display: none;
-}
-
-.pause__panel {
-  display: grid;
-  gap: var(--sp-1);
-  width: min(var(--pause-width), calc(100% - var(--sp-2) * 2));
-  padding: var(--sp-3);
-  border-radius: var(--radius);
-  background: var(--card-paper);
-  color: var(--card-ink);
-  box-shadow: var(--card-shadow);
-}
-
-.pause__title {
-  margin: 0 0 var(--sp-1);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-bold);
-  text-align: center;
-}
-
 /* ---------- 成績 ---------- */
 
 .result {
@@ -632,7 +858,7 @@
   bottom: calc(var(--sp-3) * -1);
   display: flex;
   justify-content: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   margin: 0 calc(var(--sp-3) * -1) calc(var(--sp-3) * -1);
   padding: var(--sp-2) var(--sp-3) var(--sp-3);
   background: var(--card-paper);
@@ -661,8 +887,14 @@
   }
   .letter-item.is-wrong,
   .letter-item.is-picked,
-  .hud__clock[data-hurry='true'],
   .countdown.is-tick {
     animation: none;
   }
+
+  /* 時間快到時不晃、不震、不閃（變紅、震動線條照樣畫出來，看得出時間快到） */
+  .hud__clock:is([data-time='hurry'], [data-time='final']),
+  .hud__clock:is([data-time='hurry'], [data-time='final']) :is(.alarm__shake, .alarm__buzz-side, .hud__time) {
+    animation: none;
+  }
+
 }

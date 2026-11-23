@@ -15,11 +15,14 @@
     <link rel="stylesheet" href="styles/game.css" />
     <link rel="stylesheet" href="styles/order.css" />
     <link rel="stylesheet" href="styles/play.css" />
+    <link rel="stylesheet" href="styles/lobby.css" />
+    <link rel="stylesheet" href="styles/settings.css" />
     <link rel="stylesheet" href="styles/book.css" />
     <!--
       順序有關係：props.js 準備好商品 → shop.js 蓋出整間店 → storefront.js 在門口加上店面 →
       characters.js 把小栗長進櫃台後面 → letters.js 在餅乾、麵包上寫字母 → words.js 單字表 →
-      game.js 接手開場 → book.js 遊戲說明書 → play.js 開始營業後的遊戲
+      settings.js 設定（難度、單字量）→ notebook.js 記事本 →
+      game.js 接手開場、主畫面 → book.js 遊戲說明書 → play.js 開始營業後的遊戲
     -->
     <script src="scripts/props.js" defer></script>
     <script src="scripts/shop.js" defer></script>
@@ -27,6 +30,8 @@
     <script src="scripts/characters.js" defer></script>
     <script src="scripts/letters.js" defer></script>
     <script src="scripts/words.js" defer></script>
+    <script src="scripts/settings.js" defer></script>
+    <script src="scripts/notebook.js" defer></script>
     <script src="scripts/game.js" defer></script>
     <script src="scripts/book.js" defer></script>
     <script src="scripts/play.js" defer></script>
@@ -43,8 +48,11 @@
 
         <p class="game__status" data-game-status hidden>營業中</p>
 
-        <!-- 右上角：音樂開關（一直都在）、倒數時鐘與設定（營業中才出現）-->
-        <div class="hud" data-hud data-playing="false">
+        <!--
+          右上角：音樂開關（一直都在）、鬧鐘倒數（營業中）、齒輪設定（主畫面和營業中）
+          data-mode：idle 開場／lobby 主畫面／play 營業中
+        -->
+        <div class="hud" data-hud data-mode="idle">
           <button type="button" class="hud__button" data-music-toggle aria-pressed="true" aria-label="音樂">
             <svg class="hud__music-on" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
               <path d="M9 17 V5 L19 3 V15" /><circle cx="6.5" cy="17" r="2.5" style="fill: currentColor" /><circle cx="16.5" cy="15" r="2.5" style="fill: currentColor" />
@@ -53,13 +61,40 @@
               <path d="M9 17 V5 L19 3 V15" /><circle cx="6.5" cy="17" r="2.5" style="fill: currentColor" /><circle cx="16.5" cy="15" r="2.5" style="fill: currentColor" /><path d="M3 3 L21 21" />
             </svg>
           </button>
-          <p class="hud__clock" data-clock data-hurry="false" role="timer" aria-label="剩下的時間">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round">
-              <circle cx="12" cy="13" r="8" /><path d="M12 9 V13 L15 15 M9 2.5 H15" />
-            </svg>
-            <span data-clock-time>0:30</span>
-          </p>
-          <button type="button" class="hud__button hud__gear" data-pause-open aria-label="設定（暫停遊戲）">
+          <!--
+            鬧鐘：鐘面（.alarm__face）的色塊是剩下的時間，--left 由 scripts/play.js 填 0–1；
+            data-time：plenty 時間還多／half 過半／hurry 剩三成／final 最後 5 秒
+          -->
+          <div class="hud__clock" data-clock data-time="plenty" role="timer" aria-label="剩下的時間">
+            <span class="alarm" aria-hidden="true">
+              <span class="alarm__shake">
+                <span class="alarm__face"></span>
+                <svg class="alarm__body" viewBox="0 0 48 48" focusable="false">
+                  <path class="alarm__bell" d="M5 16 A8.5 8.5 0 0 1 17 4 Z" />
+                  <path class="alarm__bell" d="M31 4 A8.5 8.5 0 0 1 43 16 Z" />
+                  <path class="alarm__line" d="M24 12 V8 M13 40 L9.5 45 M35 40 L38.5 45" />
+                  <circle class="alarm__knob" cx="24" cy="6.5" r="2.5" />
+                  <circle class="alarm__rim" cx="24" cy="27" r="15" />
+                  <path class="alarm__line alarm__hands" d="M24 27 V18.5 M24 27 L30 30.5" />
+                  <circle class="alarm__knob" cx="24" cy="27" r="2" />
+                </svg>
+              </span>
+              <!-- 震動線條：時間快到才出現，左右各兩道弧線一閃一閃往外 -->
+              <svg class="alarm__buzz" viewBox="0 0 48 48" focusable="false">
+                <g class="alarm__buzz-side alarm__buzz-side--left">
+                  <path d="M-2.5 19 Q-6 27 -2.5 35" />
+                  <path d="M-8.5 15 Q-14 27 -8.5 39" />
+                </g>
+                <g class="alarm__buzz-side alarm__buzz-side--right">
+                  <path d="M50.5 19 Q54 27 50.5 35" />
+                  <path d="M56.5 15 Q62 27 56.5 39" />
+                </g>
+              </svg>
+            </span>
+            <span class="hud__time" data-clock-time>0:30</span>
+            <span class="hud__penalty" data-clock-penalty aria-hidden="true"></span>
+          </div>
+          <button type="button" class="hud__button hud__gear" data-settings-open aria-label="設定">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
               <circle cx="12" cy="12" r="3" />
               <path d="M12 2.5 V5 M12 19 V21.5 M2.5 12 H5 M19 12 H21.5 M5.3 5.3 L7.1 7.1 M16.9 16.9 L18.7 18.7 M5.3 18.7 L7.1 16.9 M16.9 7.1 L18.7 5.3" />
@@ -101,19 +136,135 @@
           <p class="result__score" data-result-score></p>
           <ul class="result__list" data-result-list aria-label="這一局的單字"></ul>
           <div class="result__actions">
-            <button type="button" class="game__button game__button--ghost" data-game-restart>回到店門口</button>
+            <button type="button" class="game__button game__button--ghost" data-game-lobby>回到主畫面</button>
             <button type="button" class="game__button" data-play-again>再玩一次</button>
           </div>
         </div>
 
-        <!-- 設定選單：遊戲暫停 -->
-        <div class="pause" data-pause role="dialog" aria-labelledby="pause-title" hidden>
-          <div class="pause__panel">
-            <h2 class="pause__title" id="pause-title">暫停</h2>
-            <button type="button" class="game__button" data-pause-resume>繼續</button>
-            <button type="button" class="game__button game__button--ghost" data-pause-restart>重新開始</button>
-            <button type="button" class="game__button game__button--ghost" data-pause-howto>遊戲說明</button>
-            <button type="button" class="game__button game__button--ghost" data-game-restart>回到主畫面</button>
+        <!-- 主畫面：說明書看完或跳過之後停在這裡，按中間的大按鈕才開始（scripts/game.js）-->
+        <div class="lobby" data-lobby hidden>
+          <p class="lobby__title">準備好開店了嗎？</p>
+          <div class="lobby__launch">
+            <button type="button" class="lobby__start" data-lobby-start>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="11" style="fill: currentColor" />
+                <path d="M9.5 7.5 L17 12 L9.5 16.5 Z" class="lobby__start-play" />
+              </svg>
+              開始遊戲
+            </button>
+            <!-- 按下去時飛出來的字母餅乾、星星和光圈（scripts/game.js 產生）-->
+            <div class="lobby__burst" data-lobby-burst aria-hidden="true"></div>
+          </div>
+          <p class="lobby__summary" data-lobby-summary></p>
+          <div class="lobby__links">
+            <button type="button" class="lobby__link" data-lobby-howto>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 6.5 C10 5 7 4.5 3.5 5 V18.5 C7 18 10 18.5 12 20 C14 18.5 17 18 20.5 18.5 V5 C17 4.5 14 5 12 6.5 Z M12 6.5 V20" />
+              </svg>
+              遊戲說明
+            </button>
+            <button type="button" class="lobby__link" data-settings-open>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 7 H14 M18 7 H20 M4 17 H8 M12 17 H20" />
+                <circle cx="16" cy="7" r="2.5" /><circle cx="10" cy="17" r="2.5" />
+              </svg>
+              設定
+            </button>
+            <button type="button" class="lobby__link" data-game-restart>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 21 V4.5 A1.5 1.5 0 0 1 7.5 3 H16.5 A1.5 1.5 0 0 1 18 4.5 V21 M3.5 21 H20.5" />
+                <circle cx="14.5" cy="12.5" r="1" style="fill: currentColor; stroke: none" />
+              </svg>
+              回到店門口
+            </button>
+          </div>
+        </div>
+
+        <!--
+          設定視窗：拉桿調整單字難度、單字量，打開記事本（scripts/settings.js）。
+          營業中按齒輪也是這個視窗，同時暫停遊戲（data-mode="play"，多了繼續／重新開始…）
+        -->
+        <div class="settings" data-settings data-mode="lobby" role="dialog" aria-labelledby="settings-title" hidden>
+          <div class="settings__panel">
+            <h2 class="settings__title" id="settings-title" data-settings-title>設定</h2>
+
+            <div class="settings__group">
+              <div class="settings__row">
+                <label class="settings__label" for="setting-difficulty">單字難度</label>
+                <output class="settings__value" for="setting-difficulty" data-setting-out="difficulty"></output>
+              </div>
+              <input class="slider" id="setting-difficulty" type="range" min="1" max="5" step="1" value="3" data-setting="difficulty" />
+              <div class="slider__ticks" style="--n: 5" aria-hidden="true">
+                <span style="--i: 0" data-tick="1">很簡單</span>
+                <span style="--i: 1" data-tick="2">簡單</span>
+                <span style="--i: 2" data-tick="3">普通</span>
+                <span style="--i: 3" data-tick="4">困難</span>
+                <span style="--i: 4" data-tick="5">超難</span>
+              </div>
+              <p class="settings__hint" data-setting-hint="difficulty"></p>
+            </div>
+
+            <div class="settings__group">
+              <div class="settings__row">
+                <label class="settings__label" for="setting-count">單字量</label>
+                <output class="settings__value" for="setting-count" data-setting-out="count"></output>
+              </div>
+              <input class="slider" id="setting-count" type="range" min="5" max="30" step="5" value="15" data-setting="count" />
+              <div class="slider__ticks" style="--n: 6" aria-hidden="true">
+                <span style="--i: 0" data-tick="5">5</span>
+                <span style="--i: 1" data-tick="10">10</span>
+                <span style="--i: 2" data-tick="15">15</span>
+                <span style="--i: 3" data-tick="20">20</span>
+                <span style="--i: 4" data-tick="25">25</span>
+                <span style="--i: 5" data-tick="30">30</span>
+              </div>
+              <p class="settings__hint" data-setting-hint="count"></p>
+            </div>
+
+            <button type="button" class="settings__notebook" data-notebook-open>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round">
+                <rect x="5" y="3.5" width="14" height="17" rx="2" /><path d="M9 8.5 H15 M9 12 H15 M9 15.5 H12.5 M8 2 V5 M12 2 V5 M16 2 V5" />
+              </svg>
+              <span class="settings__notebook-text">
+                <span class="settings__notebook-title">記事本</span>
+                <span class="settings__notebook-count" data-notebook-count></span>
+              </span>
+            </button>
+
+            <!-- 主畫面打開：只有「完成」-->
+            <div class="settings__actions settings__actions--lobby">
+              <button type="button" class="game__button" data-settings-done>完成</button>
+            </div>
+            <!-- 營業中打開（暫停）：繼續、重新開始、遊戲說明、回到主畫面 -->
+            <div class="settings__actions settings__actions--play">
+              <p class="settings__note">難度和單字量從下一局開始；按「重新開始」馬上換。</p>
+              <button type="button" class="game__button settings__resume" data-pause-resume>繼續</button>
+              <button type="button" class="game__button game__button--ghost" data-pause-restart>重新開始</button>
+              <button type="button" class="game__button game__button--ghost" data-pause-howto>遊戲說明</button>
+              <button type="button" class="game__button game__button--ghost settings__wide" data-game-lobby>回到主畫面</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 記事本：考過的單字（scripts/notebook.js），從設定視窗打開 -->
+        <div class="notebook" data-notebook role="dialog" aria-labelledby="notebook-title" hidden>
+          <div class="notebook__pad">
+            <div class="notebook__head">
+              <div>
+                <h2 class="notebook__title" id="notebook-title">記事本</h2>
+                <p class="notebook__summary" data-notebook-summary></p>
+              </div>
+              <button type="button" class="game__button game__button--ghost" data-notebook-close>關閉</button>
+            </div>
+            <div class="notebook__filters" role="group" aria-label="要看哪些單字">
+              <button type="button" class="notebook__filter" data-notebook-filter="all" aria-pressed="true">全部</button>
+              <button type="button" class="notebook__filter" data-notebook-filter="missed" aria-pressed="false">答錯過的</button>
+            </div>
+            <ul class="notebook__list" data-notebook-list aria-label="考過的單字"></ul>
+            <p class="notebook__empty" data-notebook-empty hidden></p>
+            <div class="notebook__foot">
+              <button type="button" class="notebook__clear" data-notebook-clear>清空記事本</button>
+            </div>
           </div>
         </div>
 
@@ -125,36 +276,44 @@
                 <h2 class="book__title" id="book-title" data-book-title tabindex="-1">遊戲說明</h2>
                 <button type="button" class="book__skip" data-book-skip>跳過說明</button>
               </div>
-              <section class="book__page" data-book-page>
-                <img class="book__shot" src="images/howto/howto-1.jpg" width="800" height="450" alt="櫃台前的顧客頭上有中文提示，旁邊是挖空的英文單字題目卡" />
-                <h3 class="book__heading">1　遊戲目標</h3>
-                <p class="book__text">顧客走到櫃台前，用中文說他想要的東西。把英文單字缺的字母補齊，他就會拿著紙袋開心回家。一局有 15 位顧客，越後面越難：前 5 位是初級、中間 5 位中級、最後 5 位高級。</p>
-              </section>
-              <section class="book__page" data-book-page hidden>
-                <img class="book__shot" src="images/howto/howto-2.jpg" width="800" height="450" alt="題目卡：左上角是難度，下面是中文提示和挖空的單字，橘色框是現在要補的字母" />
-                <h3 class="book__heading">2　看懂題目</h3>
-                <p class="book__text">題目卡上有難度、中文提示和挖空的英文單字，橘色框是現在要補的字母。初級的第一個字母一定會給你，中級以上連第一個字母都可能要自己補；按 🔊 可以聽單字怎麼唸。</p>
-              </section>
-              <section class="book__page" data-book-page hidden>
-                <img class="book__shot" src="images/howto/howto-3.jpg" width="800" height="450" alt="展示櫃頂上一排寫著字母的餅乾" />
-                <h3 class="book__heading">3　字母在哪裡</h3>
-                <p class="book__text">a 到 m 是左邊展示櫃頂上的字母餅乾，n 到 z 是右邊麵包架上的字母麵包，都照字母順序排好。</p>
-              </section>
-              <section class="book__page" data-book-page hidden>
-                <img class="book__shot" src="images/howto/howto-4.jpg" width="800" height="450" alt="小栗走到展示櫃前，頭上帶著拿到的字母" />
-                <h3 class="book__heading">4　點商品，小栗去拿</h3>
-                <p class="book__text">按「餅乾櫃」或「麵包架」轉過去，點缺的那個字母。點對了，小栗會走過去拿回來補上；點錯了商品會搖一搖，還會扣 3 秒，看清楚再點。</p>
-              </section>
-              <section class="book__page" data-book-page hidden>
-                <img class="book__shot" src="images/howto/howto-5.jpg" width="800" height="450" alt="畫面右上角的倒數時鐘與設定按鈕" />
-                <h3 class="book__heading">5　時鐘與設定</h3>
-                <p class="book__text">右上角的時鐘在倒數，時間快到時會晃動。按齒輪可以暫停，選擇繼續、重新開始、看說明或回到主畫面。</p>
-              </section>
+              <!-- 每一頁疊在同一格，書的高度＝最高的那一頁，翻頁時不會忽大忽小 -->
+              <div class="book__pages">
+                <section class="book__page" data-book-page>
+                  <img class="book__shot" src="images/howto/howto-1.jpg" width="800" height="450" alt="櫃台前的顧客頭上有中文提示，旁邊是挖空的英文單字題目卡" />
+                  <h3 class="book__heading">1　遊戲目標</h3>
+                  <p class="book__text">顧客走到櫃台前，用中文說他想要的東西。把英文單字缺的字母補齊，他就會拿著紙袋開心回家。一局預設 15 位顧客，越後面越難：前 5 位是初級、中間 5 位中級、最後 5 位高級。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-2.jpg" width="800" height="450" alt="題目卡：左上角是難度，下面是中文提示和挖空的單字，橘色框是現在要補的字母" />
+                  <h3 class="book__heading">2　看懂題目</h3>
+                  <p class="book__text">題目卡上有難度、中文提示和挖空的英文單字，橘色框是現在要補的字母。初級的第一個字母一定會給你，中級以上連第一個字母都可能要自己補；按 🔊 可以聽單字怎麼唸。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-3.jpg" width="800" height="450" alt="展示櫃頂上一排寫著字母的餅乾" />
+                  <h3 class="book__heading">3　字母在哪裡</h3>
+                  <p class="book__text">a 到 m 是左邊展示櫃頂上的字母餅乾，n 到 z 是右邊麵包架上的字母麵包，都照字母順序排好。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-4.jpg" width="800" height="450" alt="小栗走到展示櫃前，頭上帶著拿到的字母" />
+                  <h3 class="book__heading">4　點商品，小栗去拿</h3>
+                  <p class="book__text">按「餅乾櫃」或「麵包架」轉過去，點缺的那個字母。點對了，小栗會走過去拿回來補上；點錯了商品會搖一搖，還會扣 3 秒，看清楚再點。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-5.jpg" width="800" height="450" alt="畫面右上角的鬧鐘變紅了，兩邊冒出震動線條，旁邊是設定齒輪" />
+                  <h3 class="book__heading">5　鬧鐘與暫停</h3>
+                  <p class="book__text">右上角的鬧鐘在倒數，鐘面上的色塊是剩下的時間。時間快到時鬧鐘會變紅、鈴鐺一直晃，最後 5 秒整顆都在震。按齒輪可以暫停，選擇繼續、重新開始、看說明或回到主畫面。</p>
+                </section>
+                <section class="book__page" data-book-page hidden>
+                  <img class="book__shot" src="images/howto/howto-6.jpg" width="800" height="450" alt="設定視窗：單字難度和單字量兩個拉桿，下面是記事本按鈕" />
+                  <h3 class="book__heading">6　難度、單字量和記事本</h3>
+                  <p class="book__text">主畫面的「設定」（或右上角的齒輪）裡有兩個拉桿：單字難度從「很簡單」到「超難」，單字量一局 5 到 30 個。考過的單字都會記在記事本裡，可以只看答錯過的字，按 🔊 再聽一次。</p>
+                </section>
+              </div>
               <div class="book__nav">
                 <button type="button" class="game__button game__button--ghost" data-book-prev>上一頁</button>
-                <span class="book__count" data-book-count>1 / 5</span>
+                <span class="book__count" data-book-count>1 / 6</span>
                 <button type="button" class="game__button" data-book-next>下一頁</button>
-                <button type="button" class="game__button" data-book-finish hidden>開始遊戲</button>
+                <button type="button" class="game__button" data-book-finish hidden>看完了</button>
               </div>
             </div>
           </div>
